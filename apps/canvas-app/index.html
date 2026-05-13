@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>The Forge — Proof of Process Canvas</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div id="app">
+        <header>
+            <h1>The Forge</h1>
+            <div id="status">
+                <span id="session-badge" class="badge">No Session</span>
+                <span id="stroke-count">0 strikes</span>
+                <span id="did-display"></span>
+            </div>
+        </header>
+
+        <main>
+            <div id="canvas-container">
+                <canvas id="forge-canvas" width="1200" height="800"></canvas>
+            </div>
+
+            <aside id="panel">
+                <section id="tools">
+                    <h3>Brush</h3>
+                    <label>Size <input type="range" id="brush-size" min="1" max="50" value="8"></label>
+                    <label>Color <input type="color" id="brush-color" value="#1a1a2e"></label>
+                    <button id="btn-clear">Clear Canvas</button>
+                </section>
+
+                <section id="session-controls">
+                    <h3>Session</h3>
+                    <button id="btn-start" class="primary">Start Forging</button>
+                    <button id="btn-export" disabled>Export Beskar</button>
+                    <button id="btn-analyze" disabled>Analyze Purity</button>
+                </section>
+
+                <section id="results" hidden>
+                    <h3>Purity Report</h3>
+                    <div id="purity-grade"></div>
+                    <div id="purity-score"></div>
+                    <pre id="purity-details"></pre>
+                </section>
+
+                <section id="export-result" hidden>
+                    <h3>Beskar Manifest</h3>
+                    <p>Your work is sealed. Download the proof:</p>
+                    <a id="download-link" download="beskar-manifest.json">Download Manifest</a>
+                </section>
+            </aside>
+        </main>
+
+        <footer>
+            <p>This is the way. All proof computed locally in your browser — nothing leaves your device.</p>
+        </footer>
+    </div>
+
+    <script type="module" src="app.js"></script>
+</body>
+</html>
