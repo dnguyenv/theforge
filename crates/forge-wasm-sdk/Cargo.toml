@@ -1,0 +1,11 @@
+[package]
+name = "forge-wasm-sdk"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+description = "SDK for building Forge host-app plugins (Wasm guest)"
+
+[dependencies]
+serde = { workspace = true }
+serde_json = { workspace = true }
+thiserror = { workspace = true }

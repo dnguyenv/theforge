@@ -11,6 +11,7 @@ members = [
     "crates/armorer-core",
     "crates/beskar-export",
     "crates/foundry-sync",
+    "crates/forge-wasm-sdk",
     "tools/forge-cli",
     "tests/integration",
 ]
