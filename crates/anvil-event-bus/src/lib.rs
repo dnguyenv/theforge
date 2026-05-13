@@ -1,4 +1,8 @@
+mod ring_bus;
+
 use serde::{Deserialize, Serialize};
+
+pub use ring_bus::RingBus;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct StrikeEvent {
@@ -31,20 +35,23 @@ pub struct Telemetry {
     pub input_entropy: f32,
 }
 
-pub trait EventBus: Send + Sync {
-    fn publish(&self, event: StrikeEvent) -> Result<(), EventBusError>;
-    fn subscribe(&self) -> Box<dyn EventSubscriber>;
-}
-
-pub trait EventSubscriber: Send {
-    fn recv(&self) -> Result<StrikeEvent, EventBusError>;
-    fn try_recv(&self) -> Result<Option<StrikeEvent>, EventBusError>;
-}
-
 #[derive(Debug, thiserror::Error)]
 pub enum EventBusError {
     #[error("bus is full, backpressure applied")]
     Full,
     #[error("bus is closed")]
     Closed,
+    #[error("no message available")]
+    Empty,
+}
+
+pub trait EventBus: Send + Sync {
+    fn publish(&self, event: StrikeEvent) -> Result<(), EventBusError>;
+    fn subscribe(&self) -> Box<dyn EventSubscriber>;
+    fn close(&self);
+}
+
+pub trait EventSubscriber: Send {
+    fn recv(&self) -> Result<StrikeEvent, EventBusError>;
+    fn try_recv(&self) -> Result<StrikeEvent, EventBusError>;
 }
