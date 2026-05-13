@@ -1,0 +1,5 @@
+[build]
+rustflags = ["-D", "warnings"]
+
+[target.aarch64-apple-darwin]
+rustflags = ["-D", "warnings"]

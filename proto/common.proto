@@ -1,0 +1,63 @@
+syntax = "proto3";
+
+package theforge.common.v1;
+
+enum ActionType {
+  ACTION_TYPE_UNSPECIFIED = 0;
+  BRUSH_STROKE = 1;
+  VERTEX_MOVE = 2;
+  CODE_EDIT = 3;
+  LAYER_OPERATION = 4;
+  TRANSFORM = 5;
+  SELECTION = 6;
+  TOOL_CHANGE = 7;
+  UNDO_REDO = 8;
+}
+
+message Coordinates {
+  double x = 1;
+  double y = 2;
+  optional double z = 3;
+}
+
+message Telemetry {
+  optional float pressure = 1;
+  optional float velocity = 2;
+  uint32 duration_ms = 3;
+  string tool_id = 4;
+  optional Coordinates coordinates = 5;
+  float input_entropy = 6;
+}
+
+message StrikeEvent {
+  string session_id = 1;
+  uint64 sequence_id = 2;
+  ActionType action = 3;
+  Telemetry telemetry = 4;
+  uint64 timestamp_ms = 5;
+  map<string, string> metadata = 6;
+}
+
+message SessionInfo {
+  string session_id = 1;
+  string chain_code = 2;
+  uint64 started_at = 3;
+  uint64 strike_count = 4;
+  SessionState state = 5;
+}
+
+enum SessionState {
+  SESSION_STATE_UNSPECIFIED = 0;
+  ACTIVE = 1;
+  PAUSED = 2;
+  CLOSING = 3;
+  CLOSED = 4;
+}
+
+enum PurityGrade {
+  PURITY_GRADE_UNSPECIFIED = 0;
+  MASTERWORK = 1;
+  HAND_FORGED = 2;
+  ASSISTED = 3;
+  SYNTHETIC = 4;
+}

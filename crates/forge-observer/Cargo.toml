@@ -1,0 +1,13 @@
+[package]
+name = "forge-observer"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+description = "gRPC service for host-app plugin event streaming"
+
+[dependencies]
+tonic = { workspace = true }
+prost = { workspace = true }
+tokio = { workspace = true }
+tracing = { workspace = true }
+anvil-event-bus = { path = "../anvil-event-bus" }

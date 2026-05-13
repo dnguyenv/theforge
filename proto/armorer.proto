@@ -1,0 +1,43 @@
+syntax = "proto3";
+
+package theforge.armorer.v1;
+
+import "common.proto";
+
+service Armorer {
+  rpc AnalyzeSession(AnalyzeSessionRequest) returns (AnalyzeSessionResponse);
+  rpc AnalyzeStream(stream theforge.common.v1.StrikeEvent) returns (AnalyzeSessionResponse);
+  rpc GetPurityGrade(GetPurityGradeRequest) returns (PurityReport);
+}
+
+message AnalyzeSessionRequest {
+  string session_id = 1;
+  repeated theforge.common.v1.StrikeEvent events = 2;
+}
+
+message AnalyzeSessionResponse {
+  string session_id = 1;
+  PurityReport report = 2;
+}
+
+message GetPurityGradeRequest {
+  string session_id = 1;
+}
+
+message PurityReport {
+  theforge.common.v1.PurityGrade grade = 1;
+  float score = 2;
+  float confidence = 3;
+  FeatureScores features = 4;
+}
+
+message FeatureScores {
+  float shannon_entropy = 1;
+  float hurst_exponent = 2;
+  float timing_jitter = 3;
+  float pressure_variance = 4;
+  float velocity_autocorrelation = 5;
+  float action_transition_entropy = 6;
+  float pause_distribution_fit = 7;
+  float burst_density_variance = 8;
+}

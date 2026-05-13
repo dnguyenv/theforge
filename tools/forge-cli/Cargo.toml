@@ -1,0 +1,10 @@
+[package]
+name = "forge-cli"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+description = "Developer CLI for The Forge Protocol"
+
+[dependencies]
+forge-crypto = { path = "../../crates/forge-crypto" }
+forge-merkle = { path = "../../crates/forge-merkle" }

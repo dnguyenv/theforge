@@ -1,0 +1,11 @@
+[package]
+name = "forge-storage"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+description = "SQLite persistence layer for The Forge Protocol"
+
+[dependencies]
+rusqlite = { version = "0.31", features = ["bundled"] }
+serde = { workspace = true }
+thiserror = { workspace = true }

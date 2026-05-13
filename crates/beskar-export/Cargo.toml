@@ -1,0 +1,12 @@
+[package]
+name = "beskar-export"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+description = "C2PA manifest injection for The Forge Protocol"
+
+[dependencies]
+serde = { workspace = true }
+thiserror = { workspace = true }
+forge-crypto = { path = "../forge-crypto" }
+forge-merkle = { path = "../forge-merkle" }

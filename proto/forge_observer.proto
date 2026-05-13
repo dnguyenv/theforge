@@ -1,0 +1,65 @@
+syntax = "proto3";
+
+package theforge.observer.v1;
+
+import "common.proto";
+
+service ForgeObserver {
+  rpc StreamStrikes(stream theforge.common.v1.StrikeEvent) returns (stream StrikeAck);
+  rpc RecordStrike(theforge.common.v1.StrikeEvent) returns (StrikeAck);
+  rpc StartSession(StartSessionRequest) returns (StartSessionResponse);
+  rpc EndSession(EndSessionRequest) returns (EndSessionResponse);
+  rpc PauseSession(PauseSessionRequest) returns (PauseSessionResponse);
+  rpc ResumeSession(ResumeSessionRequest) returns (ResumeSessionResponse);
+  rpc GetSession(GetSessionRequest) returns (theforge.common.v1.SessionInfo);
+}
+
+message StrikeAck {
+  uint64 sequence_id = 1;
+  bytes delta_hash = 2;
+  bool accepted = 3;
+}
+
+message StartSessionRequest {
+  string chain_code = 1;
+  bytes signature = 2;
+  map<string, string> metadata = 3;
+}
+
+message StartSessionResponse {
+  string session_id = 1;
+  uint64 started_at = 2;
+}
+
+message EndSessionRequest {
+  string session_id = 1;
+}
+
+message EndSessionResponse {
+  string session_id = 1;
+  bytes merkle_root = 2;
+  uint64 strike_count = 3;
+  theforge.common.v1.PurityGrade purity_grade = 4;
+}
+
+message PauseSessionRequest {
+  string session_id = 1;
+  string reason = 2;
+}
+
+message PauseSessionResponse {
+  bool success = 1;
+}
+
+message ResumeSessionRequest {
+  string session_id = 1;
+}
+
+message ResumeSessionResponse {
+  bool success = 1;
+  uint64 resumed_at = 2;
+}
+
+message GetSessionRequest {
+  string session_id = 1;
+}

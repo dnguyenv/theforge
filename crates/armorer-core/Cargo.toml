@@ -1,0 +1,11 @@
+[package]
+name = "armorer-core"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+description = "Purity analysis engine for The Forge Protocol"
+
+[dependencies]
+serde = { workspace = true }
+thiserror = { workspace = true }
+anvil-event-bus = { path = "../anvil-event-bus" }

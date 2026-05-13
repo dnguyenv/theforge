@@ -1,0 +1,12 @@
+[package]
+name = "forge-session"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+description = "Session lifecycle management for The Forge Protocol"
+
+[dependencies]
+tokio = { workspace = true }
+uuid = { workspace = true }
+serde = { workspace = true }
+thiserror = { workspace = true }

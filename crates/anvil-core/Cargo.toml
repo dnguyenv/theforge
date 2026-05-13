@@ -1,0 +1,17 @@
+[package]
+name = "anvil-core"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+description = "The Anvil daemon - edge agent for The Forge Protocol"
+
+[dependencies]
+tokio = { workspace = true }
+tracing = { workspace = true }
+tracing-subscriber = { version = "0.3", features = ["env-filter"] }
+forge-crypto = { path = "../forge-crypto" }
+forge-session = { path = "../forge-session" }
+forge-storage = { path = "../forge-storage" }
+forge-merkle = { path = "../forge-merkle" }
+anvil-event-bus = { path = "../anvil-event-bus" }
+forge-observer = { path = "../forge-observer" }
