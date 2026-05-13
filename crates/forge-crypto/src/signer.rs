@@ -3,6 +3,7 @@ use crate::CryptoError;
 #[derive(Debug, Clone, Copy, PartialEq, Eq, serde::Serialize, serde::Deserialize)]
 pub enum SignatureAlgorithm {
     Ed25519,
+    EcdsaP256,
 }
 
 pub trait SigningProvider: Send + Sync {

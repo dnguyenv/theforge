@@ -5,10 +5,17 @@ edition.workspace = true
 license.workspace = true
 description = "Cryptographic signing and DID management for The Forge Protocol"
 
+[features]
+default = []
+apple-enclave = ["security-framework", "security-framework-sys", "core-foundation"]
+
 [dependencies]
 ring = { workspace = true }
 serde = { workspace = true }
 thiserror = { workspace = true }
 bs58 = "0.5"
+security-framework = { version = "2", optional = true }
+security-framework-sys = { version = "2", optional = true }
+core-foundation = { version = "0.9", optional = true }
 
 [dev-dependencies]
