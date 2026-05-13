@@ -1,7 +1,7 @@
 use anvil_event_bus::StrikeEvent;
 
 use crate::features;
-use crate::{ArmorerError, FeatureScores, PurityAnalyzer, PurityGrade, PurityReport};
+use crate::{ArmorerError, FeatureScores, PurityAnalyzer, PurityGrade, PurityReport, SessionContext};
 
 const MIN_EVENTS: usize = 20;
 
@@ -27,6 +27,26 @@ impl Default for RuleBasedAnalyzer {
         Self::new()
     }
 }
+
+impl RuleBasedAnalyzer {
+    /// Analyze with session context for heartbeat gap penalties.
+    pub fn analyze_with_context(
+        &self,
+        events: &[StrikeEvent],
+        ctx: &SessionContext,
+    ) -> Result<PurityReport, ArmorerError> {
+        let mut report = self.analyze(events)?;
+
+        let penalty = ctx.heartbeat_gaps as f64 * HEARTBEAT_GAP_PENALTY;
+        report.heartbeat_penalty = penalty;
+        report.score = (report.score - penalty).clamp(0.0, 1.0);
+        report.grade = PurityGrade::from_score(report.score);
+
+        Ok(report)
+    }
+}
+
+const HEARTBEAT_GAP_PENALTY: f64 = 0.02;
 
 impl PurityAnalyzer for RuleBasedAnalyzer {
     fn analyze(&self, events: &[StrikeEvent]) -> Result<PurityReport, ArmorerError> {
@@ -64,6 +84,7 @@ impl PurityAnalyzer for RuleBasedAnalyzer {
             score: composite,
             confidence,
             features: scores,
+            heartbeat_penalty: 0.0,
         })
     }
 }
@@ -243,5 +264,40 @@ mod tests {
         assert_eq!(PurityGrade::from_score(0.85), PurityGrade::HandForged);
         assert_eq!(PurityGrade::from_score(0.65), PurityGrade::Assisted);
         assert_eq!(PurityGrade::from_score(0.30), PurityGrade::Synthetic);
+    }
+
+    #[test]
+    fn heartbeat_gaps_penalize_score() {
+        let analyzer = RuleBasedAnalyzer::new();
+        let events = make_human_events(200);
+
+        let base = analyzer.analyze(&events).unwrap();
+
+        let ctx = SessionContext {
+            heartbeat_gaps: 5,
+            pause_count: 0,
+            duration_ms: 3_600_000,
+        };
+        let penalized = analyzer.analyze_with_context(&events, &ctx).unwrap();
+
+        assert!(
+            penalized.score < base.score,
+            "penalized ({:.3}) should be less than base ({:.3})",
+            penalized.score, base.score
+        );
+        assert!((penalized.heartbeat_penalty - 0.10).abs() < 0.001);
+    }
+
+    #[test]
+    fn zero_gaps_no_penalty() {
+        let analyzer = RuleBasedAnalyzer::new();
+        let events = make_human_events(100);
+
+        let base = analyzer.analyze(&events).unwrap();
+        let ctx = SessionContext::default();
+        let with_ctx = analyzer.analyze_with_context(&events, &ctx).unwrap();
+
+        assert!((base.score - with_ctx.score).abs() < 0.001);
+        assert_eq!(with_ctx.heartbeat_penalty, 0.0);
     }
 }

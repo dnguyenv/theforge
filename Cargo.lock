@@ -724,6 +724,7 @@ dependencies = [
  "clap",
  "forge-crypto",
  "forge-merkle",
+ "ring",
  "serde_json",
 ]
 

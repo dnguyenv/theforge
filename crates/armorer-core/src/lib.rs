@@ -32,6 +32,15 @@ pub struct PurityReport {
     pub score: f64,
     pub confidence: f64,
     pub features: FeatureScores,
+    pub heartbeat_penalty: f64,
+}
+
+/// Session-level metadata that feeds into purity scoring.
+#[derive(Debug, Clone, Default)]
+pub struct SessionContext {
+    pub heartbeat_gaps: u32,
+    pub pause_count: u32,
+    pub duration_ms: u64,
 }
 
 #[derive(Debug, Clone, Default, Serialize, Deserialize)]

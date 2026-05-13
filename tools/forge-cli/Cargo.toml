@@ -7,6 +7,7 @@ description = "Developer CLI for The Forge Protocol"
 
 [dependencies]
 clap = { version = "4", features = ["derive"] }
+ring = { workspace = true }
 serde_json = { workspace = true }
 forge-crypto = { path = "../../crates/forge-crypto" }
 forge-merkle = { path = "../../crates/forge-merkle" }

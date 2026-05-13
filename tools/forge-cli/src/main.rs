@@ -17,6 +17,9 @@ enum Commands {
     Verify {
         /// Path to the manifest JSON file
         path: String,
+        /// Hex-encoded Ed25519 public key for signature verification
+        #[arg(long)]
+        pubkey: Option<String>,
     },
     /// Show information about the Forge protocol
     Info,
@@ -27,7 +30,7 @@ fn main() {
 
     match cli.command {
         Commands::Keygen => cmd_keygen(),
-        Commands::Verify { path } => cmd_verify(&path),
+        Commands::Verify { path, pubkey } => cmd_verify(&path, pubkey.as_deref()),
         Commands::Info => cmd_info(),
     }
 }
@@ -43,7 +46,7 @@ fn cmd_keygen() {
     println!("Persistent key storage requires Secure Enclave integration.");
 }
 
-fn cmd_verify(path: &str) {
+fn cmd_verify(path: &str, pubkey_hex: Option<&str>) {
     let data = match std::fs::read(path) {
         Ok(d) => d,
         Err(e) => {
@@ -82,8 +85,46 @@ fn cmd_verify(path: &str) {
     }
 
     println!("Signature:       {} bytes", manifest.signature.len());
-    println!();
-    println!("Note: Full signature verification requires the creator's public key.");
+
+    if let Some(pk_hex) = pubkey_hex {
+        verify_signature(&manifest, pk_hex);
+    } else {
+        println!();
+        println!("Tip: pass --pubkey <hex> to verify the signature cryptographically.");
+    }
+}
+
+fn verify_signature(manifest: &beskar_export::BeskarManifest, pubkey_hex: &str) {
+    let pubkey_bytes = match hex::decode(pubkey_hex) {
+        Some(b) => b,
+        None => {
+            eprintln!("Error: invalid hex in --pubkey");
+            std::process::exit(1);
+        }
+    };
+
+    let payload = match serde_json::to_vec(&manifest.assertions) {
+        Ok(p) => p,
+        Err(e) => {
+            eprintln!("Error re-serializing assertions: {e}");
+            std::process::exit(1);
+        }
+    };
+
+    use ring::signature::{UnparsedPublicKey, ED25519};
+    let public_key = UnparsedPublicKey::new(&ED25519, &pubkey_bytes);
+
+    match public_key.verify(&payload, &manifest.signature) {
+        Ok(()) => {
+            println!();
+            println!("Signature:       VALID");
+        }
+        Err(_) => {
+            println!();
+            println!("Signature:       INVALID");
+            std::process::exit(1);
+        }
+    }
 }
 
 fn cmd_info() {
@@ -104,5 +145,15 @@ fn cmd_info() {
 mod hex {
     pub fn encode(bytes: &[u8]) -> String {
         bytes.iter().map(|b| format!("{b:02x}")).collect()
+    }
+
+    pub fn decode(s: &str) -> Option<Vec<u8>> {
+        if s.len() % 2 != 0 {
+            return None;
+        }
+        (0..s.len())
+            .step_by(2)
+            .map(|i| u8::from_str_radix(&s[i..i + 2], 16).ok())
+            .collect()
     }
 }
