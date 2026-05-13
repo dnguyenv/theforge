@@ -178,6 +178,15 @@ impl SessionManager {
         })
     }
 
+    pub fn active_session_ids(&self) -> Vec<String> {
+        let sessions = self.sessions.lock().unwrap();
+        sessions
+            .iter()
+            .filter(|(_, s)| s.info.state == SessionState::Active)
+            .map(|(id, _)| id.clone())
+            .collect()
+    }
+
     pub fn get_info(&self, session_id: &str) -> Result<SessionInfo, SessionError> {
         let sessions = self.sessions.lock().unwrap();
         sessions

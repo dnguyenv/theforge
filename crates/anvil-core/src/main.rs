@@ -39,6 +39,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let _writer = persistence::spawn_persistence_writer(store.clone(), event_bus.clone());
     let _heartbeat = heartbeat::spawn_heartbeat(
         session_manager.clone(),
+        store.clone(),
         Duration::from_secs(config.heartbeat_interval_secs),
     );
     let _sync_timer = heartbeat::spawn_sync_timer(
