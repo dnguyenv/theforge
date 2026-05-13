@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>The Forge — Timelapse Verifier</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div id="app">
+        <header>
+            <h1>The Forge</h1>
+            <p class="subtitle">Timelapse Purity Verifier</p>
+        </header>
+
+        <main>
+            <section id="upload-section">
+                <div id="drop-zone">
+                    <div class="drop-content">
+                        <div class="icon">🎨</div>
+                        <h2>Drop your Procreate timelapse here</h2>
+                        <p>or click to browse (.mp4, .mov)</p>
+                        <input type="file" id="file-input" accept="video/mp4,video/quicktime,.mp4,.mov" hidden>
+                    </div>
+                </div>
+            </section>
+
+            <section id="analysis-section" hidden>
+                <div id="progress-container">
+                    <h3>Analyzing creative process...</h3>
+                    <div class="progress-bar">
+                        <div id="progress-fill"></div>
+                    </div>
+                    <p id="progress-text">Extracting frames...</p>
+                </div>
+
+                <div id="video-preview">
+                    <video id="preview-video" muted></video>
+                    <canvas id="analysis-canvas" hidden></canvas>
+                </div>
+            </section>
+
+            <section id="results-section" hidden>
+                <div class="result-card">
+                    <div id="grade-badge"></div>
+                    <div id="score-display"></div>
+                    <div id="detail-grid">
+                        <div class="detail-item">
+                            <span class="label">Activity Variance</span>
+                            <span id="detail-activity" class="value"></span>
+                        </div>
+                        <div class="detail-item">
+                            <span class="label">Timing Pattern</span>
+                            <span id="detail-timing" class="value"></span>
+                        </div>
+                        <div class="detail-item">
+                            <span class="label">Progress Continuity</span>
+                            <span id="detail-continuity" class="value"></span>
+                        </div>
+                        <div class="detail-item">
+                            <span class="label">Frame Changes</span>
+                            <span id="detail-frames" class="value"></span>
+                        </div>
+                    </div>
+                    <p class="disclaimer">
+                        Analysis is based on frame-by-frame pixel change patterns.
+                        A high score indicates human-like creative rhythm.
+                    </p>
+                    <button id="btn-reset">Verify Another</button>
+                </div>
+            </section>
+        </main>
+
+        <footer>
+            <p>All analysis runs locally in your browser. Your video never leaves your device.</p>
+        </footer>
+    </div>
+
+    <script src="analyzer.js"></script>
+</body>
+</html>

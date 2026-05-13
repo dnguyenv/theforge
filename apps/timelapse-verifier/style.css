@@ -1,0 +1,183 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+    background: #0a0a0f;
+    color: #e0e0e0;
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+#app {
+    width: 100%;
+    max-width: 700px;
+    padding: 40px 24px;
+}
+
+header {
+    text-align: center;
+    margin-bottom: 40px;
+}
+
+header h1 {
+    font-size: 2rem;
+    color: #f0c040;
+    margin-bottom: 4px;
+}
+
+.subtitle {
+    color: #888;
+    font-size: 0.9rem;
+}
+
+#drop-zone {
+    border: 2px dashed #3a3a4a;
+    border-radius: 16px;
+    padding: 60px 40px;
+    text-align: center;
+    cursor: pointer;
+    transition: border-color 0.2s, background 0.2s;
+}
+
+#drop-zone:hover,
+#drop-zone.dragover {
+    border-color: #f0c040;
+    background: rgba(240, 192, 64, 0.03);
+}
+
+.drop-content .icon {
+    font-size: 3rem;
+    margin-bottom: 16px;
+}
+
+.drop-content h2 {
+    font-size: 1.2rem;
+    font-weight: 500;
+    margin-bottom: 8px;
+}
+
+.drop-content p {
+    color: #666;
+    font-size: 0.85rem;
+}
+
+#analysis-section {
+    text-align: center;
+}
+
+#progress-container h3 {
+    margin-bottom: 16px;
+    font-weight: 500;
+}
+
+.progress-bar {
+    height: 6px;
+    background: #1a1a2a;
+    border-radius: 3px;
+    overflow: hidden;
+    margin-bottom: 12px;
+}
+
+#progress-fill {
+    height: 100%;
+    background: #f0c040;
+    width: 0%;
+    transition: width 0.3s;
+}
+
+#progress-text {
+    font-size: 0.8rem;
+    color: #888;
+}
+
+#video-preview {
+    margin-top: 24px;
+}
+
+#preview-video {
+    width: 100%;
+    max-height: 300px;
+    border-radius: 8px;
+    background: #000;
+}
+
+.result-card {
+    background: #12121a;
+    border: 1px solid #2a2a3a;
+    border-radius: 16px;
+    padding: 40px;
+    text-align: center;
+}
+
+#grade-badge {
+    font-size: 2.5rem;
+    font-weight: 800;
+    margin-bottom: 8px;
+}
+
+#score-display {
+    font-size: 1rem;
+    color: #aaa;
+    margin-bottom: 32px;
+}
+
+#detail-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+    margin-bottom: 24px;
+}
+
+.detail-item {
+    background: #0a0a14;
+    padding: 12px;
+    border-radius: 8px;
+    text-align: left;
+}
+
+.detail-item .label {
+    display: block;
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: #666;
+    margin-bottom: 4px;
+}
+
+.detail-item .value {
+    font-size: 1.1rem;
+    font-weight: 600;
+}
+
+.disclaimer {
+    font-size: 0.75rem;
+    color: #555;
+    margin-bottom: 24px;
+}
+
+#btn-reset {
+    padding: 12px 24px;
+    background: #2a4a6a;
+    border: 1px solid #3a6a9a;
+    border-radius: 8px;
+    color: #a0d0ff;
+    font-size: 0.9rem;
+    cursor: pointer;
+}
+
+#btn-reset:hover {
+    background: #3a5a7a;
+}
+
+footer {
+    text-align: center;
+    margin-top: 40px;
+    font-size: 0.75rem;
+    color: #444;
+}
