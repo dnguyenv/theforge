@@ -3,7 +3,7 @@ mod manager;
 use serde::{Deserialize, Serialize};
 use thiserror::Error;
 
-pub use manager::SessionManager;
+pub use manager::{SessionManager, StrikeReceipt};
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 pub enum SessionState {

@@ -2,6 +2,7 @@ use std::collections::HashMap;
 use std::sync::Mutex;
 use std::time::{SystemTime, UNIX_EPOCH};
 
+use ring::digest;
 use forge_merkle::{Hash, MerkleTree};
 use uuid::Uuid;
 
@@ -16,10 +17,18 @@ pub struct SessionManager {
 struct Session {
     info: SessionInfo,
     merkle_tree: MerkleTree,
+    prev_hash: Hash,
     heartbeat_gaps: u32,
     pause_count: u32,
     pause_total_ms: u64,
     pause_started_at: Option<u64>,
+}
+
+/// Result of recording a strike, containing chained hash info.
+#[derive(Debug, Clone)]
+pub struct StrikeReceipt {
+    pub delta_hash: Hash,
+    pub sequence_id: u64,
 }
 
 impl SessionManager {
@@ -45,6 +54,7 @@ impl SessionManager {
         let session = Session {
             info: info.clone(),
             merkle_tree: MerkleTree::new(),
+            prev_hash: [0u8; 32], // genesis: zero hash
             heartbeat_gaps: 0,
             pause_count: 0,
             pause_total_ms: 0,
@@ -55,7 +65,7 @@ impl SessionManager {
         Ok(info)
     }
 
-    pub fn record_strike(&self, session_id: &str, data: &[u8]) -> Result<Hash, SessionError> {
+    pub fn record_strike(&self, session_id: &str, data: &[u8]) -> Result<StrikeReceipt, SessionError> {
         let mut sessions = self.sessions.lock().unwrap();
         let session = sessions
             .get_mut(session_id)
@@ -71,14 +81,21 @@ impl SessionManager {
         let now = now_ms();
         check_heartbeat_gap(session, now);
 
-        let hash = session.merkle_tree.append(data);
+        // Compute chained delta_hash: SHA256(prev_hash || data)
+        let delta_hash = compute_chain_hash(&session.prev_hash, data);
+        session.prev_hash = delta_hash;
+
+        // The Merkle tree leaf is the delta_hash itself
+        session.merkle_tree.append(&delta_hash);
         session.info.strike_count += 1;
         session.info.last_heartbeat = now;
-        Ok(hash)
+
+        Ok(StrikeReceipt {
+            delta_hash,
+            sequence_id: session.info.strike_count,
+        })
     }
 
-    /// Record a heartbeat pulse from the background timer.
-    /// Call this every HEARTBEAT_INTERVAL_MS while the session is active.
     pub fn record_heartbeat(&self, session_id: &str) -> Result<(), SessionError> {
         let mut sessions = self.sessions.lock().unwrap();
         let session = sessions
@@ -86,7 +103,7 @@ impl SessionManager {
             .ok_or_else(|| SessionError::NotFound(session_id.to_string()))?;
 
         if session.info.state != SessionState::Active {
-            return Ok(()); // Ignore heartbeat for paused/closed sessions
+            return Ok(());
         }
 
         let now = now_ms();
@@ -147,7 +164,6 @@ impl SessionManager {
             return Err(SessionError::AlreadyClosed);
         }
 
-        // If closed while paused, account for pause time
         if let Some(started) = session.pause_started_at.take() {
             session.pause_total_ms += now_ms().saturating_sub(started);
         }
@@ -157,7 +173,6 @@ impl SessionManager {
         Ok(root)
     }
 
-    /// Produce a summary of the session for purity scoring.
     pub fn summary(&self, session_id: &str) -> Result<SessionSummary, SessionError> {
         let sessions = self.sessions.lock().unwrap();
         let session = sessions
@@ -208,6 +223,17 @@ impl Default for SessionManager {
     fn default() -> Self {
         Self::new()
     }
+}
+
+/// SHA256(prev_hash || data) — creates a chained hash linking each event to its predecessor.
+fn compute_chain_hash(prev_hash: &Hash, data: &[u8]) -> Hash {
+    let mut input = Vec::with_capacity(32 + data.len());
+    input.extend_from_slice(prev_hash);
+    input.extend_from_slice(data);
+    let result = digest::digest(&digest::SHA256, &input);
+    let mut hash = [0u8; 32];
+    hash.copy_from_slice(result.as_ref());
+    hash
 }
 
 fn check_heartbeat_gap(session: &mut Session, now: u64) {
@@ -265,6 +291,57 @@ mod tests {
         let root2 = mgr.merkle_root(&info.session_id).unwrap().unwrap();
 
         assert_ne!(root1, root2);
+    }
+
+    #[test]
+    fn delta_hash_chains_to_previous() {
+        let mgr = SessionManager::new();
+        let info = mgr.start_session("did:forge:x").unwrap();
+
+        let r1 = mgr.record_strike(&info.session_id, b"event-1").unwrap();
+        let r2 = mgr.record_strike(&info.session_id, b"event-2").unwrap();
+        let r3 = mgr.record_strike(&info.session_id, b"event-3").unwrap();
+
+        // Each hash is unique
+        assert_ne!(r1.delta_hash, r2.delta_hash);
+        assert_ne!(r2.delta_hash, r3.delta_hash);
+
+        // Verify chain: r2 = SHA256(r1 || "event-2")
+        let expected_r2 = compute_chain_hash(&r1.delta_hash, b"event-2");
+        assert_eq!(r2.delta_hash, expected_r2);
+
+        let expected_r3 = compute_chain_hash(&r2.delta_hash, b"event-3");
+        assert_eq!(r3.delta_hash, expected_r3);
+    }
+
+    #[test]
+    fn chain_is_order_sensitive() {
+        let mgr = SessionManager::new();
+
+        let info_a = mgr.start_session("did:forge:a").unwrap();
+        mgr.record_strike(&info_a.session_id, b"first").unwrap();
+        let r_a = mgr.record_strike(&info_a.session_id, b"second").unwrap();
+
+        let info_b = mgr.start_session("did:forge:b").unwrap();
+        mgr.record_strike(&info_b.session_id, b"second").unwrap();
+        let r_b = mgr.record_strike(&info_b.session_id, b"first").unwrap();
+
+        // Same data, different order => different hashes
+        assert_ne!(r_a.delta_hash, r_b.delta_hash);
+    }
+
+    #[test]
+    fn sequence_ids_are_monotonic() {
+        let mgr = SessionManager::new();
+        let info = mgr.start_session("did:forge:x").unwrap();
+
+        let r1 = mgr.record_strike(&info.session_id, b"a").unwrap();
+        let r2 = mgr.record_strike(&info.session_id, b"b").unwrap();
+        let r3 = mgr.record_strike(&info.session_id, b"c").unwrap();
+
+        assert_eq!(r1.sequence_id, 1);
+        assert_eq!(r2.sequence_id, 2);
+        assert_eq!(r3.sequence_id, 3);
     }
 
     #[test]

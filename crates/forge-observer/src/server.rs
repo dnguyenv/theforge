@@ -190,7 +190,7 @@ fn process_strike(
     proto_event: &common::StrikeEvent,
 ) -> Result<[u8; 32], Box<dyn std::error::Error + Send + Sync>> {
     let data = proto_event.encode_to_vec();
-    let hash = session_mgr.record_strike(&proto_event.session_id, &data)?;
+    let receipt = session_mgr.record_strike(&proto_event.session_id, &data)?;
 
     let telemetry = proto_event.telemetry.as_ref();
     let event = StrikeEvent {
@@ -211,7 +211,7 @@ fn process_strike(
     };
 
     let _ = bus.publish(event);
-    Ok(hash)
+    Ok(receipt.delta_hash)
 }
 
 fn map_action(action: common::ActionType) -> ActionType {
