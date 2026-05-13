@@ -10,9 +10,14 @@ tokio = { workspace = true }
 tonic = { workspace = true }
 tracing = { workspace = true }
 tracing-subscriber = { version = "0.3", features = ["env-filter"] }
+serde = { workspace = true }
+serde_json = { workspace = true }
+thiserror = { workspace = true }
 forge-crypto = { path = "../forge-crypto" }
 forge-session = { path = "../forge-session" }
 forge-storage = { path = "../forge-storage" }
 forge-merkle = { path = "../forge-merkle" }
 anvil-event-bus = { path = "../anvil-event-bus" }
 forge-observer = { path = "../forge-observer" }
+armorer-core = { path = "../armorer-core" }
+foundry-sync = { path = "../foundry-sync" }

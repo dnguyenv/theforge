@@ -78,11 +78,16 @@ name = "anvil-core"
 version = "0.1.0"
 dependencies = [
  "anvil-event-bus",
+ "armorer-core",
  "forge-crypto",
  "forge-merkle",
  "forge-observer",
  "forge-session",
  "forge-storage",
+ "foundry-sync",
+ "serde",
+ "serde_json",
+ "thiserror",
  "tokio",
  "tonic",
  "tracing",
