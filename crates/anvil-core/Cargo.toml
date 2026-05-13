@@ -7,6 +7,7 @@ description = "The Anvil daemon - edge agent for The Forge Protocol"
 
 [dependencies]
 tokio = { workspace = true }
+tonic = { workspace = true }
 tracing = { workspace = true }
 tracing-subscriber = { version = "0.3", features = ["env-filter"] }
 forge-crypto = { path = "../forge-crypto" }

@@ -1,5 +1,9 @@
+mod manager;
+
 use serde::{Deserialize, Serialize};
 use thiserror::Error;
+
+pub use manager::SessionManager;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 pub enum SessionState {
@@ -19,10 +23,12 @@ pub enum SessionError {
     AlreadyClosed,
 }
 
-pub trait SessionManager: Send + Sync {
-    fn start_session(&self, chain_code: &str) -> Result<String, SessionError>;
-    fn pause_session(&self, session_id: &str) -> Result<(), SessionError>;
-    fn resume_session(&self, session_id: &str) -> Result<(), SessionError>;
-    fn close_session(&self, session_id: &str) -> Result<(), SessionError>;
-    fn get_state(&self, session_id: &str) -> Result<SessionState, SessionError>;
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct SessionInfo {
+    pub session_id: String,
+    pub chain_code: String,
+    pub state: SessionState,
+    pub strike_count: u64,
+    pub started_at: u64,
+    pub last_heartbeat: u64,
 }

@@ -10,3 +10,5 @@ tokio = { workspace = true }
 uuid = { workspace = true }
 serde = { workspace = true }
 thiserror = { workspace = true }
+forge-merkle = { path = "../forge-merkle" }
+forge-crypto = { path = "../forge-crypto" }
