@@ -1,5 +1,8 @@
-use forge_merkle::Hash;
+mod manifest;
+
 use thiserror::Error;
+
+pub use manifest::{BeskarManifest, ForgeAssertion, ManifestBuilder};
 
 #[derive(Debug, Error)]
 pub enum ExportError {
@@ -9,17 +12,6 @@ pub enum ExportError {
     Manifest(String),
     #[error("file format not supported: {0}")]
     UnsupportedFormat(String),
-}
-
-pub struct BeskarManifest {
-    pub merkle_root: Hash,
-    pub leaf_count: usize,
-    pub purity_grade: String,
-    pub purity_score: f64,
-    pub chain_code: String,
-    pub session_id: String,
-}
-
-pub trait BeskarExporter: Send + Sync {
-    fn export(&self, file_path: &str, manifest: &BeskarManifest) -> Result<(), ExportError>;
+    #[error("serialization error: {0}")]
+    Serialization(#[from] serde_json::Error),
 }

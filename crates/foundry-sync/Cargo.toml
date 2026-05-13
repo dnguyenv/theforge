@@ -8,5 +8,7 @@ description = "Background ledger synchronization for The Forge Protocol"
 [dependencies]
 tokio = { workspace = true }
 serde = { workspace = true }
+serde_json = { workspace = true }
 thiserror = { workspace = true }
+tracing = { workspace = true }
 forge-storage = { path = "../forge-storage" }
