@@ -190,7 +190,7 @@ fn process_strike(
     proto_event: &common::StrikeEvent,
 ) -> Result<[u8; 32], Box<dyn std::error::Error + Send + Sync>> {
     let data = proto_event.encode_to_vec();
-    let receipt = session_mgr.record_strike(&proto_event.session_id, &data)?;
+    let receipt = session_mgr.record_strike(&proto_event.session_id, proto_event.sequence_id, &data)?;
 
     let telemetry = proto_event.telemetry.as_ref();
     let event = StrikeEvent {

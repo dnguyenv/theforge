@@ -65,7 +65,9 @@ impl SessionManager {
         Ok(info)
     }
 
-    pub fn record_strike(&self, session_id: &str, data: &[u8]) -> Result<StrikeReceipt, SessionError> {
+    /// Record a strike with explicit sequence_id validation.
+    /// The sequence_id must equal strike_count + 1 (monotonically increasing, no gaps).
+    pub fn record_strike(&self, session_id: &str, sequence_id: u64, data: &[u8]) -> Result<StrikeReceipt, SessionError> {
         let mut sessions = self.sessions.lock().unwrap();
         let session = sessions
             .get_mut(session_id)
@@ -78,14 +80,20 @@ impl SessionManager {
             });
         }
 
+        let expected = session.info.strike_count + 1;
+        if sequence_id != expected {
+            return Err(SessionError::SequenceViolation {
+                expected,
+                got: sequence_id,
+            });
+        }
+
         let now = now_ms();
         check_heartbeat_gap(session, now);
 
-        // Compute chained delta_hash: SHA256(prev_hash || data)
         let delta_hash = compute_chain_hash(&session.prev_hash, data);
         session.prev_hash = delta_hash;
 
-        // The Merkle tree leaf is the delta_hash itself
         session.merkle_tree.append(&delta_hash);
         session.info.strike_count += 1;
         session.info.last_heartbeat = now;
@@ -272,8 +280,8 @@ mod tests {
         let mgr = SessionManager::new();
         let info = mgr.start_session("did:forge:x").unwrap();
 
-        mgr.record_strike(&info.session_id, b"stroke-1").unwrap();
-        mgr.record_strike(&info.session_id, b"stroke-2").unwrap();
+        mgr.record_strike(&info.session_id, 1, b"stroke-1").unwrap();
+        mgr.record_strike(&info.session_id, 2, b"stroke-2").unwrap();
 
         let updated = mgr.get_info(&info.session_id).unwrap();
         assert_eq!(updated.strike_count, 2);
@@ -284,10 +292,10 @@ mod tests {
         let mgr = SessionManager::new();
         let info = mgr.start_session("did:forge:x").unwrap();
 
-        mgr.record_strike(&info.session_id, b"a").unwrap();
+        mgr.record_strike(&info.session_id, 1, b"a").unwrap();
         let root1 = mgr.merkle_root(&info.session_id).unwrap().unwrap();
 
-        mgr.record_strike(&info.session_id, b"b").unwrap();
+        mgr.record_strike(&info.session_id, 2, b"b").unwrap();
         let root2 = mgr.merkle_root(&info.session_id).unwrap().unwrap();
 
         assert_ne!(root1, root2);
@@ -298,15 +306,13 @@ mod tests {
         let mgr = SessionManager::new();
         let info = mgr.start_session("did:forge:x").unwrap();
 
-        let r1 = mgr.record_strike(&info.session_id, b"event-1").unwrap();
-        let r2 = mgr.record_strike(&info.session_id, b"event-2").unwrap();
-        let r3 = mgr.record_strike(&info.session_id, b"event-3").unwrap();
+        let r1 = mgr.record_strike(&info.session_id, 1, b"event-1").unwrap();
+        let r2 = mgr.record_strike(&info.session_id, 2, b"event-2").unwrap();
+        let r3 = mgr.record_strike(&info.session_id, 3, b"event-3").unwrap();
 
-        // Each hash is unique
         assert_ne!(r1.delta_hash, r2.delta_hash);
         assert_ne!(r2.delta_hash, r3.delta_hash);
 
-        // Verify chain: r2 = SHA256(r1 || "event-2")
         let expected_r2 = compute_chain_hash(&r1.delta_hash, b"event-2");
         assert_eq!(r2.delta_hash, expected_r2);
 
@@ -319,14 +325,13 @@ mod tests {
         let mgr = SessionManager::new();
 
         let info_a = mgr.start_session("did:forge:a").unwrap();
-        mgr.record_strike(&info_a.session_id, b"first").unwrap();
-        let r_a = mgr.record_strike(&info_a.session_id, b"second").unwrap();
+        mgr.record_strike(&info_a.session_id, 1, b"first").unwrap();
+        let r_a = mgr.record_strike(&info_a.session_id, 2, b"second").unwrap();
 
         let info_b = mgr.start_session("did:forge:b").unwrap();
-        mgr.record_strike(&info_b.session_id, b"second").unwrap();
-        let r_b = mgr.record_strike(&info_b.session_id, b"first").unwrap();
+        mgr.record_strike(&info_b.session_id, 1, b"second").unwrap();
+        let r_b = mgr.record_strike(&info_b.session_id, 2, b"first").unwrap();
 
-        // Same data, different order => different hashes
         assert_ne!(r_a.delta_hash, r_b.delta_hash);
     }
 
@@ -335,13 +340,33 @@ mod tests {
         let mgr = SessionManager::new();
         let info = mgr.start_session("did:forge:x").unwrap();
 
-        let r1 = mgr.record_strike(&info.session_id, b"a").unwrap();
-        let r2 = mgr.record_strike(&info.session_id, b"b").unwrap();
-        let r3 = mgr.record_strike(&info.session_id, b"c").unwrap();
+        let r1 = mgr.record_strike(&info.session_id, 1, b"a").unwrap();
+        let r2 = mgr.record_strike(&info.session_id, 2, b"b").unwrap();
+        let r3 = mgr.record_strike(&info.session_id, 3, b"c").unwrap();
 
         assert_eq!(r1.sequence_id, 1);
         assert_eq!(r2.sequence_id, 2);
         assert_eq!(r3.sequence_id, 3);
+    }
+
+    #[test]
+    fn duplicate_sequence_rejected() {
+        let mgr = SessionManager::new();
+        let info = mgr.start_session("did:forge:x").unwrap();
+
+        mgr.record_strike(&info.session_id, 1, b"a").unwrap();
+        let result = mgr.record_strike(&info.session_id, 1, b"replay");
+        assert!(matches!(result, Err(SessionError::SequenceViolation { expected: 2, got: 1 })));
+    }
+
+    #[test]
+    fn skipped_sequence_rejected() {
+        let mgr = SessionManager::new();
+        let info = mgr.start_session("did:forge:x").unwrap();
+
+        mgr.record_strike(&info.session_id, 1, b"a").unwrap();
+        let result = mgr.record_strike(&info.session_id, 5, b"skip");
+        assert!(matches!(result, Err(SessionError::SequenceViolation { expected: 2, got: 5 })));
     }
 
     #[test]
@@ -368,7 +393,7 @@ mod tests {
         let info = mgr.start_session("did:forge:x").unwrap();
         mgr.pause(&info.session_id).unwrap();
 
-        let result = mgr.record_strike(&info.session_id, b"nope");
+        let result = mgr.record_strike(&info.session_id, 1, b"nope");
         assert!(result.is_err());
     }
 
@@ -376,7 +401,7 @@ mod tests {
     fn close_returns_merkle_root() {
         let mgr = SessionManager::new();
         let info = mgr.start_session("did:forge:x").unwrap();
-        mgr.record_strike(&info.session_id, b"data").unwrap();
+        mgr.record_strike(&info.session_id, 1, b"data").unwrap();
 
         let root = mgr.close(&info.session_id).unwrap();
         assert!(root.is_some());
@@ -431,7 +456,7 @@ mod tests {
     fn summary_zero_gaps_for_fresh_session() {
         let mgr = SessionManager::new();
         let info = mgr.start_session("did:forge:x").unwrap();
-        mgr.record_strike(&info.session_id, b"a").unwrap();
+        mgr.record_strike(&info.session_id, 1, b"a").unwrap();
 
         let summary = mgr.summary(&info.session_id).unwrap();
         assert_eq!(summary.heartbeat_gaps, 0);
