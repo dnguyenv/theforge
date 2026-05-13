@@ -315,6 +315,26 @@ dependencies = [
 ]
 
 [[package]]
+name = "forge-integration-tests"
+version = "0.1.0"
+dependencies = [
+ "anvil-event-bus",
+ "armorer-core",
+ "beskar-export",
+ "forge-crypto",
+ "forge-merkle",
+ "forge-observer",
+ "forge-session",
+ "forge-storage",
+ "foundry-sync",
+ "prost",
+ "serde_json",
+ "tokio",
+ "tokio-stream",
+ "tonic",
+]
+
+[[package]]
 name = "forge-merkle"
 version = "0.1.0"
 dependencies = [

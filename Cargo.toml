@@ -12,6 +12,7 @@ members = [
     "crates/beskar-export",
     "crates/foundry-sync",
     "tools/forge-cli",
+    "tests/integration",
 ]
 
 [workspace.package]

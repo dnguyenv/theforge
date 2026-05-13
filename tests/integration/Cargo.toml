@@ -1,0 +1,26 @@
+[package]
+name = "forge-integration-tests"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+publish = false
+
+[[test]]
+name = "pipeline"
+path = "src/pipeline.rs"
+
+[dependencies]
+tokio = { workspace = true }
+tonic = { workspace = true }
+prost = { workspace = true }
+tokio-stream = "0.1"
+serde_json = { workspace = true }
+forge-crypto = { path = "../../crates/forge-crypto" }
+forge-merkle = { path = "../../crates/forge-merkle" }
+forge-session = { path = "../../crates/forge-session" }
+forge-storage = { path = "../../crates/forge-storage" }
+forge-observer = { path = "../../crates/forge-observer" }
+anvil-event-bus = { path = "../../crates/anvil-event-bus" }
+armorer-core = { path = "../../crates/armorer-core" }
+beskar-export = { path = "../../crates/beskar-export" }
+foundry-sync = { path = "../../crates/foundry-sync" }
