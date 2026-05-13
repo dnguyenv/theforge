@@ -1,0 +1,13 @@
+[package]
+name = "forge-verifier"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+description = "Independent session verification for The Forge Protocol"
+
+[dependencies]
+ring = { workspace = true }
+serde = { workspace = true }
+serde_json = { workspace = true }
+thiserror = { workspace = true }
+forge-merkle = { path = "../forge-merkle" }

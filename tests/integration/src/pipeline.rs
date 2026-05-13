@@ -54,7 +54,7 @@ fn make_strike(session_id: &str, seq: u64) -> common::StrikeEvent {
             }),
             input_entropy: 0.7 + (seq % 3) as f32 * 0.1,
         }),
-        timestamp_ms: 1_000_000 + seq * (50 + seq % 200),
+        timestamp_ms: 1_000_000 + seq * 100, // strictly increasing: 100ms intervals
         metadata: Default::default(),
     }
 }
@@ -134,7 +134,9 @@ async fn full_pipeline_purity_analysis() {
         ActionType::Selection,
     ];
 
+    let mut ts = 500_000u64;
     for seq in 1..=100u64 {
+        ts += 30 + (seq * 7) % 300; // strictly increasing
         let action = actions[(seq as usize) % actions.len()];
         let strike = common::StrikeEvent {
             session_id: session_id.clone(),
@@ -152,7 +154,7 @@ async fn full_pipeline_purity_analysis() {
                 }),
                 input_entropy: 0.6 + (seq % 5) as f32 * 0.08,
             }),
-            timestamp_ms: 500_000 + seq * (30 + (seq * 7) % 300),
+            timestamp_ms: ts,
             metadata: Default::default(),
         };
 
@@ -177,7 +179,7 @@ async fn full_pipeline_purity_analysis() {
                 coordinates: Some((seq as f64 * 1.8, (seq as f64 * 0.7).cos() * 80.0)),
                 input_entropy: 0.6 + (seq % 5) as f32 * 0.08,
             },
-            timestamp_ms: 500_000 + seq * (30 + (seq * 7) % 300),
+            timestamp_ms: ts,
         });
     }
 

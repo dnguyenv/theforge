@@ -23,6 +23,8 @@ pub enum SessionError {
     AlreadyClosed,
     #[error("sequence violation: expected {expected}, got {got}")]
     SequenceViolation { expected: u64, got: u64 },
+    #[error("timestamp not monotonic: {got} <= previous {previous}")]
+    TimestampViolation { previous: u64, got: u64 },
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]

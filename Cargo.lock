@@ -809,6 +809,17 @@ dependencies = [
 ]
 
 [[package]]
+name = "forge-verifier"
+version = "0.1.0"
+dependencies = [
+ "forge-merkle",
+ "ring",
+ "serde",
+ "serde_json",
+ "thiserror 2.0.18",
+]
+
+[[package]]
 name = "forge-wasm-sdk"
 version = "0.1.0"
 dependencies = [
