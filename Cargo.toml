@@ -12,6 +12,7 @@ members = [
     "crates/beskar-export",
     "crates/foundry-sync",
     "crates/forge-wasm-sdk",
+    "crates/anvil-plugin-host",
     "tools/forge-cli",
     "tests/integration",
 ]

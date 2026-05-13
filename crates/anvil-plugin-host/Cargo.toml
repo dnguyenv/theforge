@@ -1,0 +1,18 @@
+[package]
+name = "anvil-plugin-host"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+description = "Wasmtime-based plugin host for The Forge Protocol"
+
+[dependencies]
+wasmtime = "29"
+serde = { workspace = true }
+serde_json = { workspace = true }
+thiserror = { workspace = true }
+tracing = { workspace = true }
+anvil-event-bus = { path = "../anvil-event-bus" }
+forge-wasm-sdk = { path = "../forge-wasm-sdk" }
+
+[dev-dependencies]
+wat = "1"
