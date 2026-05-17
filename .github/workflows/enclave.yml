@@ -1,0 +1,23 @@
+name: Apple Secure Enclave
+
+on:
+  push:
+    branches: [main]
+    paths: ["crates/forge-crypto/**"]
+  pull_request:
+    paths: ["crates/forge-crypto/**"]
+
+jobs:
+  enclave-test:
+    name: Enclave Feature Tests
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          components: clippy
+      - uses: Swatinem/rust-cache@v2
+        with:
+          shared-key: enclave-macos
+      - run: cargo test -p forge-crypto --features apple-enclave
+      - run: cargo clippy -p forge-crypto --features apple-enclave -- -D warnings

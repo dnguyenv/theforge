@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>The Forge Protocol</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+            background: #0a0a0f;
+            color: #e0e0e0;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .container {
+            text-align: center;
+            padding: 60px 24px;
+            max-width: 600px;
+        }
+        h1 {
+            font-size: 3rem;
+            color: #f0c040;
+            margin-bottom: 12px;
+        }
+        .tagline {
+            font-size: 1.1rem;
+            color: #888;
+            margin-bottom: 48px;
+        }
+        .apps {
+            display: flex;
+            gap: 24px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+        a.card {
+            display: block;
+            padding: 32px 28px;
+            background: #12121a;
+            border: 1px solid #2a2a3a;
+            border-radius: 12px;
+            text-decoration: none;
+            color: #e0e0e0;
+            width: 240px;
+            transition: border-color 0.2s, transform 0.1s;
+        }
+        a.card:hover {
+            border-color: #f0c040;
+            transform: translateY(-2px);
+        }
+        .card h2 {
+            font-size: 1.2rem;
+            margin-bottom: 8px;
+            color: #fff;
+        }
+        .card p {
+            font-size: 0.85rem;
+            color: #888;
+            line-height: 1.4;
+        }
+        footer {
+            margin-top: 60px;
+            font-size: 0.75rem;
+            color: #444;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>The Forge</h1>
+        <p class="tagline">Proof of Process for Digital Art</p>
+
+        <div class="apps">
+            <a class="card" href="./canvas/">
+                <h2>Canvas</h2>
+                <p>Draw with cryptographic proof. Every stroke is captured, hashed, and sealed into an immutable record.</p>
+            </a>
+            <a class="card" href="./verify/">
+                <h2>Verify</h2>
+                <p>Upload a Procreate timelapse to analyze creative patterns and get a purity grade.</p>
+            </a>
+        </div>
+
+        <footer>
+            <p>All processing runs locally in your browser. Nothing leaves your device.</p>
+        </footer>
+    </div>
+</body>
+</html>

@@ -14,3 +14,5 @@ Thumbs.db
 .vscode/
 *.iml
 apps/canvas-app/pkg/
+_site/
+crates/forge-wasm-bridge/target/

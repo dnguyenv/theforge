@@ -1,5 +1,6 @@
 [workspace]
 resolver = "2"
+exclude = ["crates/forge-wasm-bridge"]
 members = [
     "crates/anvil-core",
     "crates/anvil-event-bus",

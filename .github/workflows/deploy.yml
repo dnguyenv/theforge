@@ -1,0 +1,54 @@
+name: Deploy to GitHub Pages
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "apps/**"
+      - "crates/forge-wasm-bridge/**"
+  workflow_dispatch:
+
+permissions:
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  build:
+    name: Build Site
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: wasm32-unknown-unknown
+      - uses: Swatinem/rust-cache@v2
+        with:
+          shared-key: wasm
+      - uses: jetli/wasm-pack-action@v0.4.0
+      - name: Build WASM bridge
+        run: wasm-pack build crates/forge-wasm-bridge --target web --out-dir ../../apps/canvas-app/pkg
+      - name: Assemble site
+        run: |
+          mkdir -p _site/canvas _site/verify
+          cp apps/landing/index.html _site/
+          cp apps/canvas-app/index.html apps/canvas-app/app.js apps/canvas-app/style.css _site/canvas/
+          cp -r apps/canvas-app/pkg _site/canvas/pkg
+          cp apps/timelapse-verifier/index.html apps/timelapse-verifier/analyzer.js apps/timelapse-verifier/style.css _site/verify/
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: _site
+
+  deploy:
+    name: Deploy
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4
