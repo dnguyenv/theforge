@@ -1,7 +1,9 @@
 use anvil_event_bus::StrikeEvent;
 
 use crate::features;
-use crate::{ArmorerError, FeatureScores, PurityAnalyzer, PurityGrade, PurityReport, SessionContext};
+use crate::{
+    ArmorerError, FeatureScores, PurityAnalyzer, PurityGrade, PurityReport, SessionContext,
+};
 
 const MIN_EVENTS: usize = 20;
 
@@ -196,11 +198,16 @@ mod tests {
         let events = make_human_events(200);
         let report = analyzer.analyze(&events).unwrap();
 
-        assert!(report.score > 0.70, "human score {} should be > 0.70", report.score);
+        assert!(
+            report.score > 0.70,
+            "human score {} should be > 0.70",
+            report.score
+        );
         assert!(
             !matches!(report.grade, PurityGrade::Synthetic),
             "human grade should not be Synthetic, got {:?} (score: {})",
-            report.grade, report.score
+            report.grade,
+            report.score
         );
     }
 
@@ -210,7 +217,11 @@ mod tests {
         let events = make_bot_events(200);
         let report = analyzer.analyze(&events).unwrap();
 
-        assert!(report.score < 0.5, "bot score {} should be < 0.5", report.score);
+        assert!(
+            report.score < 0.5,
+            "bot score {} should be < 0.5",
+            report.score
+        );
         assert!(
             matches!(report.grade, PurityGrade::Synthetic | PurityGrade::Assisted),
             "bot grade should be Synthetic or Assisted, got {:?}",
@@ -254,7 +265,8 @@ mod tests {
         assert!(
             human.score > bot.score + 0.2,
             "human ({:.3}) should be well above bot ({:.3})",
-            human.score, bot.score
+            human.score,
+            bot.score
         );
     }
 
@@ -283,7 +295,8 @@ mod tests {
         assert!(
             penalized.score < base.score,
             "penalized ({:.3}) should be less than base ({:.3})",
-            penalized.score, base.score
+            penalized.score,
+            base.score
         );
         assert!((penalized.heartbeat_penalty - 0.10).abs() < 0.001);
     }

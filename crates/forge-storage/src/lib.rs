@@ -21,8 +21,18 @@ impl From<rusqlite::Error> for StorageError {
 }
 
 pub trait EventStore: Send + Sync {
-    fn append_event(&self, session_id: &str, sequence_id: u64, data: &[u8]) -> Result<(), StorageError>;
-    fn get_events(&self, session_id: &str, from_seq: u64, limit: usize) -> Result<Vec<StoredEvent>, StorageError>;
+    fn append_event(
+        &self,
+        session_id: &str,
+        sequence_id: u64,
+        data: &[u8],
+    ) -> Result<(), StorageError>;
+    fn get_events(
+        &self,
+        session_id: &str,
+        from_seq: u64,
+        limit: usize,
+    ) -> Result<Vec<StoredEvent>, StorageError>;
     fn get_latest_sequence(&self, session_id: &str) -> Result<u64, StorageError>;
 }
 

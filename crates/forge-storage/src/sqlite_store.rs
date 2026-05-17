@@ -70,7 +70,12 @@ fn now_epoch_ms() -> u64 {
 }
 
 impl EventStore for SqliteStore {
-    fn append_event(&self, session_id: &str, sequence_id: u64, data: &[u8]) -> Result<(), StorageError> {
+    fn append_event(
+        &self,
+        session_id: &str,
+        sequence_id: u64,
+        data: &[u8],
+    ) -> Result<(), StorageError> {
         let conn = self.conn.lock().unwrap();
         conn.execute(
             "INSERT INTO events (session_id, sequence_id, data, created_at) VALUES (?1, ?2, ?3, ?4)",
@@ -79,7 +84,12 @@ impl EventStore for SqliteStore {
         Ok(())
     }
 
-    fn get_events(&self, session_id: &str, from_seq: u64, limit: usize) -> Result<Vec<StoredEvent>, StorageError> {
+    fn get_events(
+        &self,
+        session_id: &str,
+        from_seq: u64,
+        limit: usize,
+    ) -> Result<Vec<StoredEvent>, StorageError> {
         let conn = self.conn.lock().unwrap();
         let mut stmt = conn.prepare(
             "SELECT session_id, sequence_id, data, created_at FROM events

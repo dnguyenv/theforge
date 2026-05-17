@@ -189,7 +189,14 @@ mod tests {
         events[4].sequence_id = 10; // skip
 
         let err = verify_session(&events, None).unwrap_err();
-        assert!(matches!(err, VerifyError::SequenceGap { index: 4, expected: 5, got: 10 }));
+        assert!(matches!(
+            err,
+            VerifyError::SequenceGap {
+                index: 4,
+                expected: 5,
+                got: 10
+            }
+        ));
     }
 
     #[test]
@@ -198,7 +205,10 @@ mod tests {
         events[6].timestamp_ms = events[5].timestamp_ms; // equal = violation
 
         let err = verify_session(&events, None).unwrap_err();
-        assert!(matches!(err, VerifyError::TimestampViolation { index: 6, .. }));
+        assert!(matches!(
+            err,
+            VerifyError::TimestampViolation { index: 6, .. }
+        ));
     }
 
     #[test]

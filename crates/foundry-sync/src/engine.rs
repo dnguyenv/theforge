@@ -40,7 +40,10 @@ impl<B: LedgerBackend> SyncEngine<B> {
 
         let mut synced = 0;
         for item in &items {
-            match self.submit_with_retry(&item.session_id, &item.merkle_root).await {
+            match self
+                .submit_with_retry(&item.session_id, &item.merkle_root)
+                .await
+            {
                 Ok(tx_id) => {
                     self.store.mark_synced(item.id)?;
                     info!(session_id = %item.session_id, tx_id = %tx_id, "synced to ledger");
@@ -67,7 +70,11 @@ impl<B: LedgerBackend> SyncEngine<B> {
         }
     }
 
-    async fn submit_with_retry(&self, session_id: &str, merkle_root: &[u8]) -> Result<String, SyncError> {
+    async fn submit_with_retry(
+        &self,
+        session_id: &str,
+        merkle_root: &[u8],
+    ) -> Result<String, SyncError> {
         let mut delay = BASE_DELAY_MS;
 
         for attempt in 0..MAX_RETRIES {
@@ -98,16 +105,26 @@ mod tests {
 
     impl MockBackend {
         fn always_succeeds() -> Self {
-            Self { call_count: AtomicUsize::new(0), fail_first_n: 0 }
+            Self {
+                call_count: AtomicUsize::new(0),
+                fail_first_n: 0,
+            }
         }
 
         fn fail_first(n: usize) -> Self {
-            Self { call_count: AtomicUsize::new(0), fail_first_n: n }
+            Self {
+                call_count: AtomicUsize::new(0),
+                fail_first_n: n,
+            }
         }
     }
 
     impl LedgerBackend for MockBackend {
-        async fn submit(&self, _session_id: &str, _merkle_root: &[u8]) -> Result<String, SyncError> {
+        async fn submit(
+            &self,
+            _session_id: &str,
+            _merkle_root: &[u8],
+        ) -> Result<String, SyncError> {
             let call = self.call_count.fetch_add(1, Ordering::SeqCst);
             if call < self.fail_first_n {
                 Err(SyncError::Network("timeout".into()))
@@ -161,8 +178,8 @@ mod tests {
             store.enqueue(&[i], &format!("sess-{i}")).unwrap();
         }
 
-        let engine = SyncEngine::new(store.clone(), MockBackend::always_succeeds())
-            .with_batch_size(3);
+        let engine =
+            SyncEngine::new(store.clone(), MockBackend::always_succeeds()).with_batch_size(3);
         let synced = engine.sync_pending().await.unwrap();
 
         assert_eq!(synced, 3);

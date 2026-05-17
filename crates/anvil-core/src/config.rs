@@ -27,10 +27,9 @@ impl Default for AnvilConfig {
 
 impl AnvilConfig {
     pub fn load(path: &Path) -> Result<Self, ConfigError> {
-        let contents = std::fs::read_to_string(path)
-            .map_err(|e| ConfigError::Io(e.to_string()))?;
-        let config: Self = serde_json::from_str(&contents)
-            .map_err(|e| ConfigError::Parse(e.to_string()))?;
+        let contents = std::fs::read_to_string(path).map_err(|e| ConfigError::Io(e.to_string()))?;
+        let config: Self =
+            serde_json::from_str(&contents).map_err(|e| ConfigError::Parse(e.to_string()))?;
         Ok(config)
     }
 

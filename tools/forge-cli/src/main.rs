@@ -3,7 +3,11 @@ use clap::{Parser, Subcommand};
 use forge_crypto::{SigningProvider, SoftwareSigner};
 
 #[derive(Parser)]
-#[command(name = "forge", version, about = "The Forge Protocol - Developer Tools")]
+#[command(
+    name = "forge",
+    version,
+    about = "The Forge Protocol - Developer Tools"
+)]
 struct Cli {
     #[command(subcommand)]
     command: Commands,
@@ -68,16 +72,29 @@ fn cmd_verify(path: &str, pubkey_hex: Option<&str>) {
 
     for assertion in &manifest.assertions {
         match assertion {
-            beskar_export::ForgeAssertion::PurityGrade { grade, score, confidence } => {
+            beskar_export::ForgeAssertion::PurityGrade {
+                grade,
+                score,
+                confidence,
+            } => {
                 println!("  [Purity]  grade={grade} score={score:.3} confidence={confidence:.3}");
             }
-            beskar_export::ForgeAssertion::MerkleProof { root, leaf_count, proof_uri } => {
+            beskar_export::ForgeAssertion::MerkleProof {
+                root,
+                leaf_count,
+                proof_uri,
+            } => {
                 println!("  [Merkle]  root={} leaves={leaf_count}", &root[..16]);
                 if let Some(uri) = proof_uri {
                     println!("            uri={uri}");
                 }
             }
-            beskar_export::ForgeAssertion::ChainCode { did, session_id, duration_ms, strike_count } => {
+            beskar_export::ForgeAssertion::ChainCode {
+                did,
+                session_id,
+                duration_ms,
+                strike_count,
+            } => {
                 println!("  [Chain]   did={did}");
                 println!("            session={session_id} strikes={strike_count} duration={duration_ms}ms");
             }
@@ -148,7 +165,7 @@ mod hex {
     }
 
     pub fn decode(s: &str) -> Option<Vec<u8>> {
-        if s.len() % 2 != 0 {
+        if !s.len().is_multiple_of(2) {
             return None;
         }
         (0..s.len())

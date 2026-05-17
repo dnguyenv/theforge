@@ -2,13 +2,11 @@ use std::collections::HashMap;
 use std::sync::Mutex;
 use std::time::{SystemTime, UNIX_EPOCH};
 
-use ring::digest;
 use forge_merkle::{Hash, MerkleTree};
+use ring::digest;
 use uuid::Uuid;
 
-use crate::{
-    SessionError, SessionInfo, SessionState, SessionSummary, HEARTBEAT_TOLERANCE_MS,
-};
+use crate::{SessionError, SessionInfo, SessionState, SessionSummary, HEARTBEAT_TOLERANCE_MS};
 
 pub struct SessionManager {
     sessions: Mutex<HashMap<String, Session>>,
@@ -297,8 +295,10 @@ mod tests {
         let mgr = SessionManager::new();
         let info = mgr.start_session("did:forge:x").unwrap();
 
-        mgr.record_strike(&info.session_id, 1, 1000, b"stroke-1").unwrap();
-        mgr.record_strike(&info.session_id, 2, 2000, b"stroke-2").unwrap();
+        mgr.record_strike(&info.session_id, 1, 1000, b"stroke-1")
+            .unwrap();
+        mgr.record_strike(&info.session_id, 2, 2000, b"stroke-2")
+            .unwrap();
 
         let updated = mgr.get_info(&info.session_id).unwrap();
         assert_eq!(updated.strike_count, 2);
@@ -323,9 +323,15 @@ mod tests {
         let mgr = SessionManager::new();
         let info = mgr.start_session("did:forge:x").unwrap();
 
-        let r1 = mgr.record_strike(&info.session_id, 1, 1000, b"event-1").unwrap();
-        let r2 = mgr.record_strike(&info.session_id, 2, 2000, b"event-2").unwrap();
-        let r3 = mgr.record_strike(&info.session_id, 3, 3000, b"event-3").unwrap();
+        let r1 = mgr
+            .record_strike(&info.session_id, 1, 1000, b"event-1")
+            .unwrap();
+        let r2 = mgr
+            .record_strike(&info.session_id, 2, 2000, b"event-2")
+            .unwrap();
+        let r3 = mgr
+            .record_strike(&info.session_id, 3, 3000, b"event-3")
+            .unwrap();
 
         assert_ne!(r1.delta_hash, r2.delta_hash);
         assert_ne!(r2.delta_hash, r3.delta_hash);
@@ -342,12 +348,18 @@ mod tests {
         let mgr = SessionManager::new();
 
         let info_a = mgr.start_session("did:forge:a").unwrap();
-        mgr.record_strike(&info_a.session_id, 1, 1000, b"first").unwrap();
-        let r_a = mgr.record_strike(&info_a.session_id, 2, 2000, b"second").unwrap();
+        mgr.record_strike(&info_a.session_id, 1, 1000, b"first")
+            .unwrap();
+        let r_a = mgr
+            .record_strike(&info_a.session_id, 2, 2000, b"second")
+            .unwrap();
 
         let info_b = mgr.start_session("did:forge:b").unwrap();
-        mgr.record_strike(&info_b.session_id, 1, 1000, b"second").unwrap();
-        let r_b = mgr.record_strike(&info_b.session_id, 2, 2000, b"first").unwrap();
+        mgr.record_strike(&info_b.session_id, 1, 1000, b"second")
+            .unwrap();
+        let r_b = mgr
+            .record_strike(&info_b.session_id, 2, 2000, b"first")
+            .unwrap();
 
         assert_ne!(r_a.delta_hash, r_b.delta_hash);
     }
@@ -373,7 +385,13 @@ mod tests {
 
         mgr.record_strike(&info.session_id, 1, 1000, b"a").unwrap();
         let result = mgr.record_strike(&info.session_id, 1, 1000, b"replay");
-        assert!(matches!(result, Err(SessionError::SequenceViolation { expected: 2, got: 1 })));
+        assert!(matches!(
+            result,
+            Err(SessionError::SequenceViolation {
+                expected: 2,
+                got: 1
+            })
+        ));
     }
 
     #[test]
@@ -383,7 +401,13 @@ mod tests {
 
         mgr.record_strike(&info.session_id, 1, 1000, b"a").unwrap();
         let result = mgr.record_strike(&info.session_id, 5, 5000, b"skip");
-        assert!(matches!(result, Err(SessionError::SequenceViolation { expected: 2, got: 5 })));
+        assert!(matches!(
+            result,
+            Err(SessionError::SequenceViolation {
+                expected: 2,
+                got: 5
+            })
+        ));
     }
 
     #[test]
@@ -393,7 +417,13 @@ mod tests {
 
         mgr.record_strike(&info.session_id, 1, 5000, b"a").unwrap();
         let result = mgr.record_strike(&info.session_id, 2, 4000, b"b");
-        assert!(matches!(result, Err(SessionError::TimestampViolation { previous: 5000, got: 4000 })));
+        assert!(matches!(
+            result,
+            Err(SessionError::TimestampViolation {
+                previous: 5000,
+                got: 4000
+            })
+        ));
     }
 
     #[test]
@@ -403,7 +433,10 @@ mod tests {
 
         mgr.record_strike(&info.session_id, 1, 1000, b"a").unwrap();
         let result = mgr.record_strike(&info.session_id, 2, 1000, b"b");
-        assert!(matches!(result, Err(SessionError::TimestampViolation { .. })));
+        assert!(matches!(
+            result,
+            Err(SessionError::TimestampViolation { .. })
+        ));
     }
 
     #[test]
@@ -438,7 +471,8 @@ mod tests {
     fn close_returns_merkle_root() {
         let mgr = SessionManager::new();
         let info = mgr.start_session("did:forge:x").unwrap();
-        mgr.record_strike(&info.session_id, 1, 1000, b"data").unwrap();
+        mgr.record_strike(&info.session_id, 1, 1000, b"data")
+            .unwrap();
 
         let root = mgr.close(&info.session_id).unwrap();
         assert!(root.is_some());

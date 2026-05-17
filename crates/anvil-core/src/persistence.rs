@@ -20,11 +20,7 @@ fn write_loop(store: Arc<SqliteStore>, subscriber: Box<dyn EventSubscriber>) {
         match subscriber.recv() {
             Ok(event) => {
                 let data = serialize_event(&event);
-                if let Err(e) = store.append_event(
-                    &event.session_id,
-                    event.sequence_id,
-                    &data,
-                ) {
+                if let Err(e) = store.append_event(&event.session_id, event.sequence_id, &data) {
                     error!(
                         session_id = %event.session_id,
                         seq = event.sequence_id,

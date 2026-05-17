@@ -47,7 +47,10 @@ pub fn spawn_sync_timer(
             match store.dequeue_batch(50) {
                 Ok(items) if items.is_empty() => {}
                 Ok(items) => {
-                    info!(count = items.len(), "pending sync items awaiting ledger upload");
+                    info!(
+                        count = items.len(),
+                        "pending sync items awaiting ledger upload"
+                    );
                 }
                 Err(e) => {
                     warn!(error = %e, "sync queue check failed");

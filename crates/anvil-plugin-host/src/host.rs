@@ -1,8 +1,8 @@
 use std::collections::HashMap;
 use std::path::Path;
 
+use tracing::{error, info};
 use wasmtime::Engine;
-use tracing::{info, error};
 
 use crate::{PluginError, PluginInstance};
 
@@ -39,8 +39,9 @@ impl PluginHost {
         path: &Path,
         session_id: &str,
     ) -> Result<(), PluginError> {
-        let bytes = std::fs::read(path)
-            .map_err(|e| PluginError::Compilation(format!("failed to read {}: {e}", path.display())))?;
+        let bytes = std::fs::read(path).map_err(|e| {
+            PluginError::Compilation(format!("failed to read {}: {e}", path.display()))
+        })?;
         self.load_plugin(name, &bytes, session_id)
     }
 
@@ -92,7 +93,8 @@ mod tests {
             r#"(module
                 (memory (export "memory") 1)
             )"#,
-        ).unwrap()
+        )
+        .unwrap()
     }
 
     // Wasm module with forge_init that does nothing
@@ -104,7 +106,8 @@ mod tests {
                 (func (export "forge_shutdown"))
                 (func (export "forge_on_tick") (param i64))
             )"#,
-        ).unwrap()
+        )
+        .unwrap()
     }
 
     // Wasm module that calls emit_strike on tick
@@ -120,20 +123,23 @@ mod tests {
                     (drop (call $emit (i32.const 0) (i32.const 11)))
                 )
             )"#,
-        ).unwrap()
+        )
+        .unwrap()
     }
 
     #[test]
     fn load_minimal_plugin() {
         let mut host = PluginHost::new().unwrap();
-        host.load_plugin("minimal", &minimal_wasm(), "sess-1").unwrap();
+        host.load_plugin("minimal", &minimal_wasm(), "sess-1")
+            .unwrap();
         assert_eq!(host.loaded_plugins().len(), 1);
     }
 
     #[test]
     fn load_plugin_with_lifecycle() {
         let mut host = PluginHost::new().unwrap();
-        host.load_plugin("lifecycle", &wasm_with_init(), "sess-2").unwrap();
+        host.load_plugin("lifecycle", &wasm_with_init(), "sess-2")
+            .unwrap();
         host.tick(1000);
         host.unload_plugin("lifecycle").unwrap();
         assert_eq!(host.loaded_plugins().len(), 0);
@@ -142,7 +148,8 @@ mod tests {
     #[test]
     fn plugin_emits_data() {
         let mut host = PluginHost::new().unwrap();
-        host.load_plugin("emitter", &wasm_emitter(), "sess-3").unwrap();
+        host.load_plugin("emitter", &wasm_emitter(), "sess-3")
+            .unwrap();
         host.tick(5000);
 
         let output = host.collect_output("emitter").unwrap();

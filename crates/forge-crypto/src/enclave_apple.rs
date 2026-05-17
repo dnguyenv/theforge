@@ -7,9 +7,8 @@ use core_foundation::number::CFNumber;
 use core_foundation::string::CFString;
 use security_framework::key::{Algorithm, SecKey};
 use security_framework_sys::item::{
-    kSecAttrIsPermanent, kSecAttrKeySizeInBits, kSecAttrKeyType,
-    kSecAttrKeyTypeECSECPrimeRandom, kSecAttrTokenID, kSecAttrTokenIDSecureEnclave,
-    kSecPrivateKeyAttrs,
+    kSecAttrIsPermanent, kSecAttrKeySizeInBits, kSecAttrKeyType, kSecAttrKeyTypeECSECPrimeRandom,
+    kSecAttrTokenID, kSecAttrTokenIDSecureEnclave, kSecPrivateKeyAttrs,
 };
 
 use crate::did::generate_did;
@@ -55,12 +54,12 @@ impl EnclaveSignerApple {
 
         let raw_dict = unsafe {
             CFDictionary::<*const c_void, *const c_void>::wrap_under_get_rule(
-                attributes.as_concrete_TypeRef() as *const _
+                attributes.as_concrete_TypeRef() as *const _,
             )
         };
 
-        let private_key = SecKey::generate(raw_dict)
-            .map_err(|e| CryptoError::KeyGeneration(e.to_string()))?;
+        let private_key =
+            SecKey::generate(raw_dict).map_err(|e| CryptoError::KeyGeneration(e.to_string()))?;
 
         Self::from_private_key(private_key)
     }
@@ -82,12 +81,12 @@ impl EnclaveSignerApple {
 
         let raw_dict = unsafe {
             CFDictionary::<*const c_void, *const c_void>::wrap_under_get_rule(
-                attributes.as_concrete_TypeRef() as *const _
+                attributes.as_concrete_TypeRef() as *const _,
             )
         };
 
-        let private_key = SecKey::generate(raw_dict)
-            .map_err(|e| CryptoError::KeyGeneration(e.to_string()))?;
+        let private_key =
+            SecKey::generate(raw_dict).map_err(|e| CryptoError::KeyGeneration(e.to_string()))?;
 
         Self::from_private_key(private_key)
     }

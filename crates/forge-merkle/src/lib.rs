@@ -103,7 +103,7 @@ fn collect_siblings(leaves: &[Hash], index: usize) -> Vec<(Hash, Side)> {
     let mut idx = index;
 
     while level.len() > 1 {
-        if idx % 2 == 0 {
+        if idx.is_multiple_of(2) {
             if idx + 1 < level.len() {
                 siblings.push((level[idx + 1], Side::Right));
             }
@@ -134,7 +134,7 @@ fn compute_root(leaves: &[Hash]) -> Hash {
 
     let mut level = leaves.to_vec();
     while level.len() > 1 {
-        let mut next = Vec::with_capacity((level.len() + 1) / 2);
+        let mut next = Vec::with_capacity(level.len().div_ceil(2));
         for chunk in level.chunks(2) {
             if chunk.len() == 2 {
                 next.push(hash_pair(&chunk[0], &chunk[1]));

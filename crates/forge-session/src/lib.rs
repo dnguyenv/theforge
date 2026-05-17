@@ -16,7 +16,10 @@ pub enum SessionState {
 #[derive(Debug, Error)]
 pub enum SessionError {
     #[error("invalid state transition from {from:?} to {to:?}")]
-    InvalidTransition { from: SessionState, to: SessionState },
+    InvalidTransition {
+        from: SessionState,
+        to: SessionState,
+    },
     #[error("session not found: {0}")]
     NotFound(String),
     #[error("session already closed")]

@@ -57,7 +57,8 @@ fn rescaled_range_hurst(series: &[f64]) -> f64 {
         for i in 0..chunks {
             let chunk = &series[i * size..(i + 1) * size];
             let mean = chunk.iter().sum::<f64>() / size as f64;
-            let std_dev = (chunk.iter().map(|x| (x - mean).powi(2)).sum::<f64>() / size as f64).sqrt();
+            let std_dev =
+                (chunk.iter().map(|x| (x - mean).powi(2)).sum::<f64>() / size as f64).sqrt();
 
             if std_dev < 1e-10 {
                 continue;
@@ -120,7 +121,8 @@ pub fn timing_jitter(events: &[StrikeEvent]) -> f64 {
         return 0.0;
     }
 
-    let std_dev = (intervals.iter().map(|x| (x - mean).powi(2)).sum::<f64>() / intervals.len() as f64).sqrt();
+    let std_dev =
+        (intervals.iter().map(|x| (x - mean).powi(2)).sum::<f64>() / intervals.len() as f64).sqrt();
     let cv = std_dev / mean;
 
     // High CV = human (variable timing), low CV = bot (precise timing)
@@ -140,7 +142,8 @@ pub fn pressure_variance(events: &[StrikeEvent]) -> f64 {
     }
 
     let mean = pressures.iter().sum::<f64>() / pressures.len() as f64;
-    let variance = pressures.iter().map(|x| (x - mean).powi(2)).sum::<f64>() / pressures.len() as f64;
+    let variance =
+        pressures.iter().map(|x| (x - mean).powi(2)).sum::<f64>() / pressures.len() as f64;
     let std_dev = variance.sqrt();
 
     // Human pressure typically has std_dev 0.1-0.3, bot has ~0
@@ -224,14 +227,22 @@ pub fn pause_distribution_fit(events: &[StrikeEvent]) -> f64 {
     let mean = log_intervals.iter().sum::<f64>() / log_intervals.len() as f64;
     let n = log_intervals.len() as f64;
 
-    let variance = log_intervals.iter().map(|x| (x - mean).powi(2)).sum::<f64>() / n;
+    let variance = log_intervals
+        .iter()
+        .map(|x| (x - mean).powi(2))
+        .sum::<f64>()
+        / n;
     let std_dev = variance.sqrt();
 
     if std_dev < 1e-10 {
         return 0.0; // Zero variance in log-space = perfectly uniform = bot
     }
 
-    let skewness = log_intervals.iter().map(|x| ((x - mean) / std_dev).powi(3)).sum::<f64>() / n;
+    let skewness = log_intervals
+        .iter()
+        .map(|x| ((x - mean) / std_dev).powi(3))
+        .sum::<f64>()
+        / n;
 
     // Skewness near 0 = log-normal (human), large |skewness| = not log-normal
     let fit = 1.0 - (skewness.abs() / 2.0);
@@ -256,14 +267,20 @@ pub fn burst_density_variance(events: &[StrikeEvent]) -> f64 {
         buckets[bucket] += 1;
     }
 
-    let non_zero: Vec<f64> = buckets.iter().filter(|&&b| b > 0).map(|&b| b as f64).collect();
+    let non_zero: Vec<f64> = buckets
+        .iter()
+        .filter(|&&b| b > 0)
+        .map(|&b| b as f64)
+        .collect();
     if non_zero.len() < 2 {
         return 0.5;
     }
 
     let mean = non_zero.iter().sum::<f64>() / non_zero.len() as f64;
     let cv = if mean > 0.0 {
-        let std_dev = (non_zero.iter().map(|x| (x - mean).powi(2)).sum::<f64>() / non_zero.len() as f64).sqrt();
+        let std_dev = (non_zero.iter().map(|x| (x - mean).powi(2)).sum::<f64>()
+            / non_zero.len() as f64)
+            .sqrt();
         std_dev / mean
     } else {
         0.0
