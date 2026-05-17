@@ -11,6 +11,8 @@ import { BrushTool } from './src/tools/BrushTool.js';
 import { EraserTool } from './src/tools/EraserTool.js';
 import { EyedropperTool } from './src/tools/EyedropperTool.js';
 import { FillTool } from './src/tools/FillTool.js';
+import { SmudgeTool } from './src/tools/SmudgeTool.js';
+import { TransformTool } from './src/tools/TransformTool.js';
 import { PointerHandler } from './src/input/PointerHandler.js';
 import { GestureDetector } from './src/input/GestureDetector.js';
 import { KeyboardShortcuts } from './src/input/KeyboardShortcuts.js';
@@ -43,6 +45,8 @@ async function start() {
     toolManager.register(TOOLS.ERASER, new EraserTool(engine));
     toolManager.register(TOOLS.EYEDROPPER, new EyedropperTool(engine));
     toolManager.register(TOOLS.FILL, new FillTool(engine));
+    toolManager.register(TOOLS.SMUDGE, new SmudgeTool(engine));
+    toolManager.register(TOOLS.TRANSFORM, new TransformTool(engine));
     toolManager.setActive(TOOLS.BRUSH);
 
     // Input
