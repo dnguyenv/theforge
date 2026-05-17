@@ -47,8 +47,7 @@ site: wasm
 	rm -rf _site
 	mkdir -p _site/canvas _site/verify
 	cp apps/landing/index.html _site/
-	cp apps/canvas-app/index.html apps/canvas-app/app.js apps/canvas-app/style.css _site/canvas/
-	cp -r apps/canvas-app/pkg _site/canvas/pkg
+	cp -r apps/canvas-app/index.html apps/canvas-app/app.js apps/canvas-app/style.css apps/canvas-app/src apps/canvas-app/pkg _site/canvas/
 	cp apps/timelapse-verifier/index.html apps/timelapse-verifier/analyzer.js apps/timelapse-verifier/style.css _site/verify/
 
 clean:
