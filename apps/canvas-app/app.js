@@ -1,190 +1,205 @@
-import init, {
-    forge_init,
-    forge_get_did,
-    forge_record_stroke,
-    forge_get_strike_count,
-    forge_analyze,
-    forge_export,
-    forge_reset,
-} from './pkg/forge_wasm_bridge.js';
+import init from './pkg/forge_wasm_bridge.js';
+import * as wasm from './pkg/forge_wasm_bridge.js';
 
-let sessionId = null;
-let sequenceId = 0;
-let isDrawing = false;
-let lastX = 0;
-let lastY = 0;
-let lastTime = 0;
+import { bus } from './src/core/EventBus.js';
+import { EVENTS, TOOLS } from './src/core/Constants.js';
+import { CommandHistory, DrawCommand } from './src/core/CommandHistory.js';
+import { CanvasEngine } from './src/canvas/CanvasEngine.js';
+import { ViewTransform } from './src/canvas/ViewTransform.js';
+import { ToolManager } from './src/tools/ToolManager.js';
+import { BrushTool } from './src/tools/BrushTool.js';
+import { EraserTool } from './src/tools/EraserTool.js';
+import { EyedropperTool } from './src/tools/EyedropperTool.js';
+import { FillTool } from './src/tools/FillTool.js';
+import { PointerHandler } from './src/input/PointerHandler.js';
+import { GestureDetector } from './src/input/GestureDetector.js';
+import { KeyboardShortcuts } from './src/input/KeyboardShortcuts.js';
+import { ColorPicker } from './src/color/ColorPicker.js';
+import { Toolbar } from './src/ui/Toolbar.js';
+import { LayersPanel } from './src/ui/LayersPanel.js';
+import { BrushLibrary } from './src/ui/BrushLibrary.js';
+import { StatusBar } from './src/ui/StatusBar.js';
+import { forge } from './src/forge/ForgeIntegration.js';
 
-const canvas = document.getElementById('forge-canvas');
-const ctx = canvas.getContext('2d');
-
-const btnStart = document.getElementById('btn-start');
-const btnExport = document.getElementById('btn-export');
-const btnAnalyze = document.getElementById('btn-analyze');
-const btnClear = document.getElementById('btn-clear');
-const sessionBadge = document.getElementById('session-badge');
-const strokeCount = document.getElementById('stroke-count');
-const didDisplay = document.getElementById('did-display');
-const brushSize = document.getElementById('brush-size');
-const brushColor = document.getElementById('brush-color');
-const resultsSection = document.getElementById('results');
-const exportSection = document.getElementById('export-result');
+const DOC_WIDTH = 1920;
+const DOC_HEIGHT = 1080;
 
 async function start() {
     await init();
+    await forge.init(wasm);
 
-    btnStart.addEventListener('click', startSession);
-    btnExport.addEventListener('click', exportBeskar);
-    btnAnalyze.addEventListener('click', analyzePurity);
-    btnClear.addEventListener('click', clearCanvas);
+    const canvas = document.getElementById('forge-canvas');
+    const engine = new CanvasEngine(canvas, DOC_WIDTH, DOC_HEIGHT);
 
-    canvas.addEventListener('pointerdown', onPointerDown);
-    canvas.addEventListener('pointermove', onPointerMove);
-    canvas.addEventListener('pointerup', onPointerUp);
-    canvas.addEventListener('pointerleave', onPointerUp);
+    // Add initial layer
+    engine.layers.addLayer('Background');
 
-    ctx.lineCap = 'round';
-    ctx.lineJoin = 'round';
+    // Start Forge session
+    forge.startSession();
+
+    // Tools
+    const toolManager = new ToolManager();
+    toolManager.register(TOOLS.BRUSH, new BrushTool(engine));
+    toolManager.register(TOOLS.ERASER, new EraserTool(engine));
+    toolManager.register(TOOLS.EYEDROPPER, new EyedropperTool(engine));
+    toolManager.register(TOOLS.FILL, new FillTool(engine));
+    toolManager.setActive(TOOLS.BRUSH);
+
+    // Input
+    const gestureDetector = new GestureDetector(engine.view);
+    const pointerHandler = new PointerHandler(canvas, toolManager, gestureDetector);
+    const shortcuts = new KeyboardShortcuts(toolManager);
+
+    // Undo
+    const history = new CommandHistory();
+
+    // Capture before-state on stroke start for undo
+    let strokeBefore = null;
+    bus.on(EVENTS.STROKE_START, () => {
+        const layer = engine.layers.activeLayer;
+        if (layer) {
+            strokeBefore = layer.getImageData();
+        }
+    });
+
+    // Push undo command on stroke end
+    bus.on(EVENTS.STROKE_END, () => {
+        const layer = engine.layers.activeLayer;
+        if (layer && strokeBefore) {
+            const afterData = layer.getImageData();
+            history.push(new DrawCommand(
+                layer,
+                strokeBefore,
+                afterData,
+                { x: 0, y: 0 }
+            ));
+            strokeBefore = null;
+        }
+    });
+
+    // Wire stroke start event from pointer down
+    const origBrushDown = BrushTool.prototype.onPointerDown;
+    const wrappedDown = function(e) {
+        bus.emit(EVENTS.STROKE_START, {});
+        origBrushDown.call(this, e);
+    };
+    toolManager.tools.get(TOOLS.BRUSH).onPointerDown = wrappedDown;
+    toolManager.tools.get(TOOLS.ERASER).onPointerDown = function(e) {
+        bus.emit(EVENTS.STROKE_START, {});
+        origBrushDown.call(this, e);
+    };
+
+    // UI
+    new Toolbar(document.getElementById('tool-buttons'), toolManager);
+    new LayersPanel(document.getElementById('layers-panel'), engine.layers);
+    new BrushLibrary(document.getElementById('brush-library'));
+    new ColorPicker(document.getElementById('color-picker-container'));
+    new StatusBar(document.getElementById('status-bar-container'));
+
+    // Brush size/opacity sliders
+    const sizeSlider = document.getElementById('brush-size');
+    const sizeValue = document.getElementById('size-value');
+    const opacitySlider = document.getElementById('brush-opacity');
+    const opacityValue = document.getElementById('opacity-value');
+
+    sizeSlider.addEventListener('input', () => {
+        const size = parseInt(sizeSlider.value);
+        sizeValue.textContent = size;
+        bus.emit(EVENTS.BRUSH_CHANGE, { size });
+    });
+
+    opacitySlider.addEventListener('input', () => {
+        const opacity = parseInt(opacitySlider.value) / 100;
+        opacityValue.textContent = `${Math.round(opacity * 100)}%`;
+        bus.emit(EVENTS.BRUSH_CHANGE, { opacity });
+    });
+
+    bus.on(EVENTS.BRUSH_CHANGE, ({ sizeStep }) => {
+        if (sizeStep) {
+            const newSize = Math.max(1, Math.min(200, parseInt(sizeSlider.value) + sizeStep));
+            sizeSlider.value = newSize;
+            sizeValue.textContent = newSize;
+        }
+    });
+
+    // Undo/Redo buttons
+    document.getElementById('btn-undo').addEventListener('click', () => bus.emit(EVENTS.UNDO, {}));
+    document.getElementById('btn-redo').addEventListener('click', () => bus.emit(EVENTS.REDO, {}));
+
+    // Fullscreen
+    document.getElementById('btn-fullscreen').addEventListener('click', () => {
+        document.body.classList.toggle('fullscreen');
+        setTimeout(() => engine.markDirty(), 100);
+    });
+
+    // Analyze
+    document.getElementById('btn-analyze').addEventListener('click', () => {
+        const report = forge.analyze();
+        showModal(renderPurityReport(report));
+    });
+
+    // Export
+    document.getElementById('btn-export').addEventListener('click', () => {
+        const manifest = forge.export();
+        showModal(renderExport(manifest));
+    });
+
+    // Color change updates slider appearance
+    bus.on(EVENTS.COLOR_CHANGE, ({ color }) => {
+        document.documentElement.style.setProperty('--current-color', color);
+    });
 }
 
-function startSession() {
-    forge_reset();
-    sequenceId = 0;
-
-    sessionId = forge_init();
-    const did = forge_get_did();
-
-    sessionBadge.textContent = 'Forging';
-    sessionBadge.classList.add('active');
-    didDisplay.textContent = did.slice(0, 20) + '...';
-    btnStart.textContent = 'Restart Session';
-    btnExport.disabled = false;
-    btnAnalyze.disabled = false;
-    resultsSection.hidden = true;
-    exportSection.hidden = true;
-    updateCount();
+function showModal(html) {
+    const overlay = document.getElementById('modal-overlay');
+    const body = document.getElementById('modal-body');
+    body.innerHTML = html;
+    overlay.hidden = false;
+    document.getElementById('modal-close').onclick = () => { overlay.hidden = true; };
+    overlay.addEventListener('click', (e) => {
+        if (e.target === overlay) overlay.hidden = true;
+    });
 }
 
-function onPointerDown(e) {
-    if (!sessionId) return;
-    isDrawing = true;
-    lastX = e.offsetX;
-    lastY = e.offsetY;
-    lastTime = performance.now();
-    ctx.beginPath();
-    ctx.moveTo(lastX, lastY);
-}
-
-function onPointerMove(e) {
-    if (!isDrawing || !sessionId) return;
-
-    const x = e.offsetX;
-    const y = e.offsetY;
-    const now = performance.now();
-    const dt = now - lastTime;
-
-    if (dt < 8) return; // throttle to ~120hz max
-
-    const pressure = e.pressure || 0.5;
-    const dx = x - lastX;
-    const dy = y - lastY;
-    const velocity = Math.sqrt(dx * dx + dy * dy) / (dt || 1) * 1000;
-
-    // Draw on canvas
-    const size = parseInt(brushSize.value);
-    ctx.strokeStyle = brushColor.value;
-    ctx.lineWidth = size * pressure;
-    ctx.lineTo(x, y);
-    ctx.stroke();
-    ctx.beginPath();
-    ctx.moveTo(x, y);
-
-    // Record strike
-    sequenceId++;
-    const timestampMs = Math.floor(performance.timeOrigin + now);
-    const result = forge_record_stroke(
-        sessionId,
-        sequenceId,
-        timestampMs,
-        pressure,
-        velocity,
-        x,
-        y,
-        Math.floor(dt),
-    );
-
-    if (result.startsWith('ERROR:')) {
-        console.error('Strike rejected:', result);
-        sequenceId--; // rollback
-    }
-
-    lastX = x;
-    lastY = y;
-    lastTime = now;
-    updateCount();
-}
-
-function onPointerUp() {
-    isDrawing = false;
-}
-
-function updateCount() {
-    if (!sessionId) return;
-    const count = forge_get_strike_count(sessionId);
-    strokeCount.textContent = `${count} strikes`;
-}
-
-function analyzePurity() {
-    const json = forge_analyze();
-    const report = JSON.parse(json);
-
-    resultsSection.hidden = false;
-
-    if (report.error) {
-        document.getElementById('purity-grade').textContent = 'Insufficient Data';
-        document.getElementById('purity-score').textContent = report.error;
-        document.getElementById('purity-details').textContent = '';
-        return;
+function renderPurityReport(report) {
+    if (!report || report.error) {
+        return `<h2>Purity Analysis</h2><p>${report?.error || 'No data available. Draw at least 20 strokes.'}</p>`;
     }
 
     const gradeColors = {
         Masterwork: '#f0c040',
         HandForged: '#60d080',
         Assisted: '#f0a040',
-        Synthetic: '#f04040',
+        Synthetic: '#f06060',
     };
 
-    const grade = document.getElementById('purity-grade');
-    grade.textContent = report.grade;
-    grade.style.color = gradeColors[report.grade] || '#fff';
-
-    document.getElementById('purity-score').textContent =
-        `Score: ${(report.score * 100).toFixed(1)}% | Confidence: ${(report.confidence * 100).toFixed(0)}%`;
-
-    document.getElementById('purity-details').textContent =
-        JSON.stringify(report.features, null, 2);
+    return `
+        <h2 style="text-align:center;margin-bottom:8px">Purity Analysis</h2>
+        <div class="purity-grade" style="color:${gradeColors[report.grade] || '#fff'}">${report.grade}</div>
+        <div class="purity-score">Score: ${(report.score * 100).toFixed(1)}% | Confidence: ${(report.confidence * 100).toFixed(0)}%</div>
+        <div class="purity-features">${JSON.stringify(report.features, null, 2)}</div>
+    `;
 }
 
-function exportBeskar() {
-    const json = forge_export(sessionId);
-    const manifest = JSON.parse(json);
-
-    if (manifest.error) {
-        alert('Export failed: ' + manifest.error);
-        return;
+function renderExport(manifest) {
+    if (!manifest || manifest.error) {
+        return `<h2>Export</h2><p>Error: ${manifest?.error || 'No session data'}</p>`;
     }
 
-    const blob = new Blob([JSON.stringify(manifest, null, 2)], { type: 'application/json' });
+    const json = JSON.stringify(manifest, null, 2);
+    const blob = new Blob([json], { type: 'application/json' });
     const url = URL.createObjectURL(blob);
 
-    exportSection.hidden = false;
-    const link = document.getElementById('download-link');
-    link.href = url;
-    link.download = `beskar-${sessionId.slice(0, 8)}.json`;
-}
-
-function clearCanvas() {
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    return `
+        <h2 style="text-align:center;margin-bottom:12px">Beskar Manifest</h2>
+        <p style="text-align:center;color:var(--text-secondary);margin-bottom:16px">
+            Your creative process has been sealed with a cryptographic proof.
+        </p>
+        <div class="export-actions">
+            <a href="${url}" download="beskar-manifest.json" class="btn-primary">Download Manifest</a>
+        </div>
+        <div class="purity-features" style="margin-top:16px;max-height:300px;overflow:auto">${json}</div>
+    `;
 }
 
 start();

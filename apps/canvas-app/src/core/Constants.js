@@ -1,0 +1,87 @@
+export const TOOLS = {
+    BRUSH: 'brush',
+    ERASER: 'eraser',
+    SMUDGE: 'smudge',
+    FILL: 'fill',
+    EYEDROPPER: 'eyedropper',
+    SELECTION: 'selection',
+    TRANSFORM: 'transform',
+};
+
+export const BLEND_MODES = {
+    NORMAL: 'source-over',
+    MULTIPLY: 'multiply',
+    SCREEN: 'screen',
+    OVERLAY: 'overlay',
+    DARKEN: 'darken',
+    LIGHTEN: 'lighten',
+    COLOR_DODGE: 'color-dodge',
+    COLOR_BURN: 'color-burn',
+    HARD_LIGHT: 'hard-light',
+    SOFT_LIGHT: 'soft-light',
+    DIFFERENCE: 'difference',
+    EXCLUSION: 'exclusion',
+};
+
+export const BLEND_MODE_NAMES = {
+    'source-over': 'Normal',
+    'multiply': 'Multiply',
+    'screen': 'Screen',
+    'overlay': 'Overlay',
+    'darken': 'Darken',
+    'lighten': 'Lighten',
+    'color-dodge': 'Color Dodge',
+    'color-burn': 'Color Burn',
+    'hard-light': 'Hard Light',
+    'soft-light': 'Soft Light',
+    'difference': 'Difference',
+    'exclusion': 'Exclusion',
+};
+
+export const LIMITS = {
+    MAX_LAYERS: 100,
+    MAX_UNDO_STEPS: 200,
+    MAX_UNDO_MEMORY_MB: 500,
+    MAX_BRUSH_SIZE: 500,
+    MIN_BRUSH_SIZE: 1,
+    MAX_CANVAS_SIZE: 4096,
+    POINTER_THROTTLE_MS: 8,
+    THUMBNAIL_SIZE: 64,
+    AUTOSAVE_DEBOUNCE_MS: 5000,
+};
+
+export const HOTKEYS = {
+    UNDO: { key: 'z', ctrl: true, shift: false },
+    REDO: { key: 'z', ctrl: true, shift: true },
+    BRUSH: { key: 'b', ctrl: false },
+    ERASER: { key: 'e', ctrl: false },
+    EYEDROPPER: { key: 'i', ctrl: false },
+    FILL: { key: 'g', ctrl: false },
+    TRANSFORM: { key: 'v', ctrl: false },
+    SELECTION: { key: 's', ctrl: false },
+    SMUDGE: { key: 'r', ctrl: false },
+    FULLSCREEN: { key: 'f', ctrl: false },
+    CLEAR_LAYER: { key: 'Delete', ctrl: false },
+    NEW_LAYER: { key: 'n', ctrl: true, shift: true },
+};
+
+export const EVENTS = {
+    STROKE_START: 'stroke:start',
+    STROKE_MOVE: 'stroke:move',
+    STROKE_END: 'stroke:end',
+    LAYER_ADD: 'layer:add',
+    LAYER_REMOVE: 'layer:remove',
+    LAYER_SELECT: 'layer:select',
+    LAYER_REORDER: 'layer:reorder',
+    LAYER_UPDATE: 'layer:update',
+    TOOL_CHANGE: 'tool:change',
+    BRUSH_CHANGE: 'brush:change',
+    COLOR_CHANGE: 'color:change',
+    VIEW_CHANGE: 'view:change',
+    UNDO: 'undo:execute',
+    REDO: 'redo:execute',
+    CANVAS_DIRTY: 'canvas:dirty',
+    FORGE_RECORDED: 'forge:recorded',
+    PROJECT_SAVE: 'project:save',
+    PROJECT_LOAD: 'project:load',
+};

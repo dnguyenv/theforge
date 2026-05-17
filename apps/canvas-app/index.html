@@ -3,58 +3,60 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>The Forge — Proof of Process Canvas</title>
+    <title>The Forge — Canvas</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
     <div id="app">
-        <header>
-            <h1>The Forge</h1>
-            <div id="status">
-                <span id="session-badge" class="badge">No Session</span>
-                <span id="stroke-count">0 strikes</span>
-                <span id="did-display"></span>
+        <div id="toolbar-top">
+            <div class="toolbar-left">
+                <span class="app-title">The Forge</span>
+                <div id="tool-buttons"></div>
             </div>
-        </header>
-
-        <main>
-            <div id="canvas-container">
-                <canvas id="forge-canvas" width="1200" height="800"></canvas>
+            <div class="toolbar-center">
+                <label class="slider-group">
+                    <span>Size</span>
+                    <input type="range" id="brush-size" min="1" max="200" value="12">
+                    <span id="size-value">12</span>
+                </label>
+                <label class="slider-group">
+                    <span>Opacity</span>
+                    <input type="range" id="brush-opacity" min="1" max="100" value="100">
+                    <span id="opacity-value">100%</span>
+                </label>
             </div>
+            <div class="toolbar-right">
+                <button id="btn-undo" title="Undo (Ctrl+Z)">↩</button>
+                <button id="btn-redo" title="Redo (Ctrl+Shift+Z)">↪</button>
+                <button id="btn-analyze" title="Analyze Purity">⚗️</button>
+                <button id="btn-export" title="Export Beskar">⬇️</button>
+                <button id="btn-fullscreen" title="Fullscreen">⛶</button>
+            </div>
+        </div>
 
-            <aside id="panel">
-                <section id="tools">
-                    <h3>Brush</h3>
-                    <label>Size <input type="range" id="brush-size" min="1" max="50" value="8"></label>
-                    <label>Color <input type="color" id="brush-color" value="#1a1a2e"></label>
-                    <button id="btn-clear">Clear Canvas</button>
-                </section>
-
-                <section id="session-controls">
-                    <h3>Session</h3>
-                    <button id="btn-start" class="primary">Start Forging</button>
-                    <button id="btn-export" disabled>Export Beskar</button>
-                    <button id="btn-analyze" disabled>Analyze Purity</button>
-                </section>
-
-                <section id="results" hidden>
-                    <h3>Purity Report</h3>
-                    <div id="purity-grade"></div>
-                    <div id="purity-score"></div>
-                    <pre id="purity-details"></pre>
-                </section>
-
-                <section id="export-result" hidden>
-                    <h3>Beskar Manifest</h3>
-                    <p>Your work is sealed. Download the proof:</p>
-                    <a id="download-link" download="beskar-manifest.json">Download Manifest</a>
-                </section>
+        <div id="main-content">
+            <aside id="panel-left" class="panel">
+                <div id="brush-library"></div>
+                <div id="color-picker-container"></div>
             </aside>
-        </main>
 
-        <footer>
-            <p>This is the way. All proof computed locally in your browser — nothing leaves your device.</p>
-        </footer>
+            <div id="canvas-viewport">
+                <canvas id="forge-canvas"></canvas>
+            </div>
+
+            <aside id="panel-right" class="panel">
+                <div id="layers-panel"></div>
+            </aside>
+        </div>
+
+        <div id="status-bar-container"></div>
+
+        <div id="modal-overlay" hidden>
+            <div id="modal-content">
+                <button id="modal-close">✕</button>
+                <div id="modal-body"></div>
+            </div>
+        </div>
     </div>
 
     <script type="module" src="app.js"></script>
