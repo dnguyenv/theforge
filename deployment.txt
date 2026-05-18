@@ -1,0 +1,113 @@
+===============================================
+THE FORGE — DEPLOYMENT GUIDE (Zero Cost)
+===============================================
+
+ARCHITECTURE:
+- Frontend (Canvas App + Timelapse Verifier): GitHub Pages (already live)
+- Collab Relay Server: Render.com free tier
+- CI/CD: GitHub Actions (automatic on push)
+
+===============================================
+1. FRONTEND — Already Deployed
+===============================================
+
+Live at: https://dnguyenv.github.io/theforge/
+- Canvas App: https://dnguyenv.github.io/theforge/canvas/
+- Timelapse Verifier: https://dnguyenv.github.io/theforge/verify/
+
+Auto-deploys on every push to main (via .github/workflows/deploy.yml).
+No action needed.
+
+===============================================
+2. COLLAB RELAY SERVER — Render.com (Free)
+===============================================
+
+Steps:
+1. Go to https://render.com
+2. Sign up with your GitHub account (dnguyenv)
+3. Click "New" → "Web Service"
+4. Connect your GitHub repo: dnguyenv/theforge
+5. Configure:
+   - Name: forge-collab-relay
+   - Root Directory: server/collab-relay
+   - Environment: Node
+   - Build Command: npm install
+   - Start Command: node index.js
+   - Instance Type: Free
+6. Click "Create Web Service"
+7. Wait for deploy (~2 minutes)
+
+Your relay URL will be: wss://forge-collab-relay.onrender.com
+
+Free tier notes:
+- 750 hours/month (plenty for a relay)
+- Spins down after 15 min of no connections
+- Cold start takes ~30 seconds on first connection
+- No credit card required
+
+===============================================
+3. CONNECT FRONTEND TO RELAY
+===============================================
+
+After Render deploys, update this line in apps/canvas-app/app.js:
+
+  const relayUrl = ... || 'wss://forge-collab-relay.onrender.com';
+
+Replace the URL with your actual Render URL, then:
+
+  git add -A
+  git commit -m "chore: set relay server URL"
+  git push origin main
+
+GitHub Pages will auto-redeploy with the new relay URL.
+
+===============================================
+4. TEST COLLABORATION
+===============================================
+
+1. Open https://dnguyenv.github.io/theforge/canvas/
+2. Click "Collaborate" button in the toolbar
+3. Copy the generated link
+4. Open the link in another browser/tab
+5. Draw in one tab — strokes appear in the other in real-time
+
+===============================================
+5. LOCAL DEVELOPMENT (No deployment needed)
+===============================================
+
+Terminal 1 — Relay server:
+  cd server/collab-relay
+  npm install
+  node index.js
+
+Terminal 2 — Canvas app:
+  python3 -m http.server 9000 --directory apps/canvas-app
+
+Browser:
+  http://localhost:9000?relay=ws://localhost:8080
+
+===============================================
+6. CUSTOM DOMAIN (Optional, ~$10/year)
+===============================================
+
+To use your own domain (e.g., antamart.com):
+
+GitHub Pages:
+1. Repo Settings → Pages → Custom domain → enter your domain
+2. DNS: CNAME record pointing to dnguyenv.github.io
+3. GitHub auto-provisions HTTPS via Let's Encrypt
+
+Render relay:
+1. Render dashboard → your service → Settings → Custom Domain
+2. DNS: CNAME record pointing to forge-collab-relay.onrender.com
+
+===============================================
+COST SUMMARY
+===============================================
+
+Frontend (GitHub Pages):      $0/month
+Relay Server (Render free):   $0/month
+CI/CD (GitHub Actions):       $0/month (public repo)
+Custom domain (optional):     ~$10/year
+
+Total: $0/month

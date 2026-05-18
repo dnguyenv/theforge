@@ -182,7 +182,7 @@ async function start() {
     });
 
     // --- Collaboration ---
-    const relayUrl = new URLSearchParams(window.location.search).get('relay') || 'wss://forge-collab-relay.fly.dev';
+    const relayUrl = new URLSearchParams(window.location.search).get('relay') || 'wss://theforge-val4.onrender.com';
     const collabManager = new CollabManager(engine, { serverUrl: relayUrl });
     const remoteRenderer = new RemoteRenderer(engine);
     const presenceCursor = new PresenceCursor(
