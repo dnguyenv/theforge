@@ -51,7 +51,7 @@ async function start() {
 
     // Input
     const gestureDetector = new GestureDetector(engine.view);
-    const pointerHandler = new PointerHandler(canvas, toolManager, gestureDetector);
+    const pointerHandler = new PointerHandler(canvas, toolManager, gestureDetector, engine.view);
     const shortcuts = new KeyboardShortcuts(toolManager);
 
     // Undo
@@ -129,6 +129,28 @@ async function start() {
     // Undo/Redo buttons
     document.getElementById('btn-undo').addEventListener('click', () => bus.emit(EVENTS.UNDO, {}));
     document.getElementById('btn-redo').addEventListener('click', () => bus.emit(EVENTS.REDO, {}));
+
+    // Zoom controls
+    document.getElementById('btn-zoom-in').addEventListener('click', () => {
+        engine.view.zoom(1.25, engine.viewWidth / 2, engine.viewHeight / 2);
+        bus.emit(EVENTS.VIEW_CHANGE, {});
+    });
+    document.getElementById('btn-zoom-out').addEventListener('click', () => {
+        engine.view.zoom(0.8, engine.viewWidth / 2, engine.viewHeight / 2);
+        bus.emit(EVENTS.VIEW_CHANGE, {});
+    });
+    document.getElementById('btn-fit').addEventListener('click', () => {
+        engine.view.fitToScreen(engine.docWidth, engine.docHeight, engine.viewWidth, engine.viewHeight);
+        bus.emit(EVENTS.VIEW_CHANGE, {});
+    });
+
+    // Canvas background color
+    const bgColorInput = document.getElementById('canvas-bg-color');
+    bgColorInput.addEventListener('input', () => {
+        engine.backgroundColor = bgColorInput.value;
+        engine.markDirty();
+    });
+    engine.backgroundColor = '#ffffff';
 
     // Fullscreen
     document.getElementById('btn-fullscreen').addEventListener('click', () => {

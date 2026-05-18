@@ -38,8 +38,8 @@ export class ForgeIntegration {
 
         const result = this.wasm.forge_record_stroke(
             this.sessionId,
-            this.sequenceId,
-            timestampMs,
+            BigInt(this.sequenceId),
+            BigInt(timestampMs),
             pressure,
             velocity,
             x,

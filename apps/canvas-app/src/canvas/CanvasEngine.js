@@ -92,12 +92,16 @@ export class CanvasEngine {
 
         ctx.save();
         ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-        ctx.clearRect(0, 0, this.viewWidth, this.viewHeight);
 
-        // Draw checkerboard background for transparency
-        this._drawCheckerboard(ctx);
+        // Dark workspace background
+        ctx.fillStyle = '#1e1e28';
+        ctx.fillRect(0, 0, this.viewWidth, this.viewHeight);
 
         this.view.applyToContext(ctx);
+
+        // Canvas background (user-configurable)
+        ctx.fillStyle = this.backgroundColor || '#ffffff';
+        ctx.fillRect(0, 0, this.docWidth, this.docHeight);
 
         if (this._belowCacheDirty) {
             this._buildBelowCache();

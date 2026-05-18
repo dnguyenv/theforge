@@ -1,10 +1,12 @@
-import { LIMITS } from '../core/Constants.js';
+import { bus } from '../core/EventBus.js';
+import { EVENTS, LIMITS } from '../core/Constants.js';
 
 export class PointerHandler {
-    constructor(canvas, toolManager, gestureDetector) {
+    constructor(canvas, toolManager, gestureDetector, viewTransform) {
         this.canvas = canvas;
         this.toolManager = toolManager;
         this.gestureDetector = gestureDetector;
+        this.view = viewTransform;
         this._lastTime = 0;
         this._pointers = new Map();
 
@@ -13,7 +15,18 @@ export class PointerHandler {
         canvas.addEventListener('pointerup', (e) => this._onUp(e));
         canvas.addEventListener('pointerleave', (e) => this._onUp(e));
         canvas.addEventListener('pointercancel', (e) => this._onUp(e));
+        canvas.addEventListener('wheel', (e) => this._onWheel(e), { passive: false });
         canvas.style.touchAction = 'none';
+    }
+
+    _onWheel(e) {
+        e.preventDefault();
+        const factor = e.deltaY < 0 ? 1.1 : 0.9;
+        const rect = this.canvas.getBoundingClientRect();
+        const cx = e.clientX - rect.left;
+        const cy = e.clientY - rect.top;
+        this.view.zoom(factor, cx, cy);
+        bus.emit(EVENTS.VIEW_CHANGE, {});
     }
 
     _onDown(e) {

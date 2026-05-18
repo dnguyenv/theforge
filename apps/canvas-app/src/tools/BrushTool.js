@@ -57,7 +57,11 @@ export class BrushTool {
             this._stamp(layer, smoothed, smoothed);
         }
 
-        forge.recordStroke(layer.id, pressure, 0, pos.x, pos.y, 0);
+        try {
+            forge.recordStroke(layer.id, pressure, 0, pos.x, pos.y, 0);
+        } catch (e) {
+            // Don't let forge errors interrupt drawing
+        }
     }
 
     onPointerMove(e) {
@@ -82,8 +86,13 @@ export class BrushTool {
             this.lastPoint = point;
         }
 
-        forge.recordStroke(layer.id, pressure, velocity, pos.x, pos.y, dt);
         this.engine.markDirty();
+
+        try {
+            forge.recordStroke(layer.id, pressure, velocity, pos.x, pos.y, dt);
+        } catch (e) {
+            // Don't let forge errors interrupt drawing
+        }
     }
 
     onPointerUp(e) {
