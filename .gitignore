@@ -16,3 +16,4 @@ Thumbs.db
 apps/canvas-app/pkg/
 _site/
 crates/forge-wasm-bridge/target/
+server/collab-relay/node_modules/

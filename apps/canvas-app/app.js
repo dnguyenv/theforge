@@ -21,6 +21,10 @@ import { Toolbar } from './src/ui/Toolbar.js';
 import { LayersPanel } from './src/ui/LayersPanel.js';
 import { BrushLibrary } from './src/ui/BrushLibrary.js';
 import { StatusBar } from './src/ui/StatusBar.js';
+import { CollabPanel } from './src/ui/CollabPanel.js';
+import { CollabManager } from './src/collab/CollabManager.js';
+import { RemoteRenderer } from './src/collab/RemoteRenderer.js';
+import { PresenceCursor } from './src/collab/PresenceCursor.js';
 import { forge } from './src/forge/ForgeIntegration.js';
 
 const DOC_WIDTH = 1920;
@@ -176,6 +180,79 @@ async function start() {
     bus.on(EVENTS.COLOR_CHANGE, ({ color }) => {
         document.documentElement.style.setProperty('--current-color', color);
     });
+
+    // --- Collaboration ---
+    const relayUrl = new URLSearchParams(window.location.search).get('relay') || 'wss://forge-collab-relay.fly.dev';
+    const collabManager = new CollabManager(engine, { serverUrl: relayUrl });
+    const remoteRenderer = new RemoteRenderer(engine);
+    const presenceCursor = new PresenceCursor(
+        document.getElementById('canvas-viewport'),
+        engine.view
+    );
+
+    collabManager.onRemoteStroke = (userId, layerId, points, tool, isStart) => {
+        remoteRenderer.renderRemoteStroke(userId, layerId, points, tool, isStart);
+    };
+    collabManager.onRemoteStrokeEnd = (userId, layerId) => {
+        remoteRenderer.endRemoteStroke(userId, layerId);
+    };
+    collabManager.onStateSync = (layers) => {
+        remoteRenderer.applyStateSnapshot(layers);
+    };
+    collabManager.onRemoteLayerOp = (userId, op, params) => {
+        remoteRenderer.applyLayerOp(userId, op, params);
+    };
+    collabManager.onRemoteCursor = (userId, x, y) => {
+        const userName = collabManager.users.get(userId) || userId.slice(0, 6);
+        presenceCursor.updateCursor(userId, userName, x, y);
+    };
+
+    // Send local stroke data to collab
+    bus.on(EVENTS.STROKE_START, () => {
+        if (!collabManager.isConnected) return;
+        const tool = toolManager.tools.get(toolManager.activeToolId);
+        collabManager.sendStrokeStart(engine.layers.activeLayer?.id, {
+            brushId: tool.brushId || 'pencil',
+            size: tool.size || 12,
+            opacity: tool.opacity || 1,
+            color: tool.color || '#000000',
+            compositeOp: tool.compositeOp || 'source-over',
+        });
+    });
+
+    bus.on(EVENTS.STROKE_MOVE, ({ layerId, point }) => {
+        if (!collabManager.isConnected) return;
+        collabManager.sendStrokePoint(point);
+        collabManager.sendCursor(point.x, point.y);
+    });
+
+    bus.on(EVENTS.STROKE_END, () => {
+        if (!collabManager.isConnected) return;
+        collabManager.sendStrokeEnd(engine.layers.activeLayer?.id);
+    });
+
+    // Broadcast layer operations
+    bus.on(EVENTS.LAYER_ADD, ({ layer, index }) => {
+        if (!collabManager.isConnected) return;
+        collabManager.sendLayerOp('add', { layerId: layer.id, name: layer.name, index });
+    });
+    bus.on(EVENTS.LAYER_REMOVE, ({ layer, index }) => {
+        if (!collabManager.isConnected) return;
+        collabManager.sendLayerOp('remove', { layerId: layer.id, index });
+    });
+    bus.on(EVENTS.LAYER_REORDER, ({ fromIndex, toIndex }) => {
+        if (!collabManager.isConnected) return;
+        collabManager.sendLayerOp('reorder', { fromIndex, toIndex });
+    });
+
+    // Collab UI panel
+    new CollabPanel(document.getElementById('collab-panel-container'), collabManager);
+
+    // Auto-join if URL has session param
+    const sessionParam = new URLSearchParams(window.location.search).get('session');
+    if (sessionParam) {
+        collabManager.joinSession(sessionParam);
+    }
 }
 
 function showModal(html) {

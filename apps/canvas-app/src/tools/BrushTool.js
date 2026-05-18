@@ -88,6 +88,8 @@ export class BrushTool {
 
         this.engine.markDirty();
 
+        bus.emit(EVENTS.STROKE_MOVE, { layerId: layer.id, point });
+
         try {
             forge.recordStroke(layer.id, pressure, velocity, pos.x, pos.y, dt);
         } catch (e) {

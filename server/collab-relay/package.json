@@ -1,0 +1,12 @@
+{
+  "name": "forge-collab-relay",
+  "version": "1.0.0",
+  "description": "WebSocket relay server for The Forge collaborative drawing",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js"
+  },
+  "dependencies": {
+    "ws": "^8.18.0"
+  }
+}

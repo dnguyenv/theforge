@@ -466,6 +466,75 @@ body.fullscreen #status-bar-container {
     display: none;
 }
 
+/* Collaboration */
+.collab-btn {
+    padding: 4px 10px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    background: var(--bg-tertiary);
+    color: var(--text-primary);
+    font-size: 12px;
+    cursor: pointer;
+    white-space: nowrap;
+}
+
+.collab-btn:hover { border-color: var(--accent-green); color: var(--accent-green); }
+
+.collab-connected {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.collab-users {
+    font-size: 12px;
+    color: var(--accent-green);
+    font-weight: 600;
+}
+
+.collab-btn-sm {
+    padding: 3px 8px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    background: var(--bg-tertiary);
+    color: var(--text-primary);
+    font-size: 11px;
+    cursor: pointer;
+}
+
+.collab-btn-sm:hover { border-color: var(--accent-blue); }
+.collab-leave:hover { border-color: var(--accent-red); color: var(--accent-red); }
+
+/* Presence cursors */
+.presence-overlay {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    z-index: 15;
+    overflow: hidden;
+}
+
+.presence-cursor {
+    position: absolute;
+    top: 0;
+    left: 0;
+    will-change: transform;
+    transition: transform 0.08s linear;
+}
+
+.presence-label {
+    display: inline-block;
+    margin-left: 14px;
+    margin-top: -2px;
+    padding: 1px 5px;
+    border-radius: 3px;
+    font-size: 9px;
+    font-weight: 600;
+    color: #fff;
+    white-space: nowrap;
+    vertical-align: top;
+}
+
 /* Responsive */
 @media (max-width: 900px) {
     .panel { width: 200px; }

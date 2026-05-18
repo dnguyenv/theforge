@@ -84,4 +84,10 @@ export const EVENTS = {
     FORGE_RECORDED: 'forge:recorded',
     PROJECT_SAVE: 'project:save',
     PROJECT_LOAD: 'project:load',
+    COLLAB_JOINED: 'collab:joined',
+    COLLAB_LEFT: 'collab:left',
+    COLLAB_USER_JOINED: 'collab:user:joined',
+    COLLAB_USER_LEFT: 'collab:user:left',
+    COLLAB_STATE_SYNCED: 'collab:state:synced',
+    COLLAB_CURSOR_MOVE: 'collab:cursor:move',
 };
