@@ -134,6 +134,15 @@ async function start() {
     document.getElementById('btn-undo').addEventListener('click', () => bus.emit(EVENTS.UNDO, {}));
     document.getElementById('btn-redo').addEventListener('click', () => bus.emit(EVENTS.REDO, {}));
 
+    // Overflow menu toggle
+    const overflowMenu = document.getElementById('overflow-menu');
+    document.getElementById('btn-more').addEventListener('click', (e) => {
+        e.stopPropagation();
+        overflowMenu.hidden = !overflowMenu.hidden;
+    });
+    document.addEventListener('click', () => { overflowMenu.hidden = true; });
+    overflowMenu.addEventListener('click', (e) => e.stopPropagation());
+
     // Zoom controls
     document.getElementById('btn-zoom-in').addEventListener('click', () => {
         engine.view.zoom(1.25, engine.viewWidth / 2, engine.viewHeight / 2);
@@ -251,6 +260,12 @@ async function start() {
     // Auto-join if URL has session param
     const sessionParam = new URLSearchParams(window.location.search).get('session');
     if (sessionParam) {
+        const stored = localStorage.getItem('forge-artist-name');
+        const name = stored || prompt('Enter your artist name:', '') || '';
+        if (name.trim()) {
+            localStorage.setItem('forge-artist-name', name.trim());
+            collabManager.userName = name.trim();
+        }
         collabManager.joinSession(sessionParam);
     }
 }

@@ -116,7 +116,81 @@ body {
     cursor: pointer;
 }
 
-#toolbar-top button:hover { border-color: var(--border-light); }
+#toolbar-top > .toolbar-right > button:hover { border-color: var(--border-light); }
+
+/* Overflow menu */
+.toolbar-overflow {
+    position: relative;
+}
+
+.btn-more {
+    width: 32px;
+    height: 32px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    background: var(--bg-tertiary);
+    color: var(--text-primary);
+    font-size: 18px;
+    cursor: pointer;
+    line-height: 1;
+}
+
+.btn-more:hover { border-color: var(--border-light); }
+
+.overflow-menu {
+    position: absolute;
+    top: 38px;
+    right: 0;
+    background: var(--bg-secondary);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 6px 0;
+    min-width: 180px;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.4);
+    z-index: 50;
+}
+
+.overflow-menu[hidden] { display: none; }
+
+.overflow-menu button,
+.overflow-menu label {
+    display: block;
+    width: 100%;
+    padding: 8px 14px;
+    border: none;
+    background: none;
+    color: var(--text-primary);
+    font-size: 12px;
+    text-align: left;
+    cursor: pointer;
+}
+
+.overflow-menu button:hover { background: var(--bg-tertiary); }
+
+.menu-divider {
+    height: 1px;
+    background: var(--border);
+    margin: 4px 0;
+}
+
+.menu-color-row {
+    display: flex !important;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    font-size: 12px;
+    color: var(--text-primary);
+}
+
+.menu-color-row input[type="color"] {
+    width: 28px;
+    height: 22px;
+    border: 1px solid var(--border);
+    border-radius: 3px;
+    padding: 1px;
+    cursor: pointer;
+    background: var(--bg-tertiary);
+}
 
 .bg-color-label {
     display: flex;

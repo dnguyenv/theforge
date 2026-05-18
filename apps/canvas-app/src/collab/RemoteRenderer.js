@@ -68,7 +68,11 @@ export class RemoteRenderer {
         if (!layersData || layersData.length === 0) return;
 
         const stack = this.engine.layers;
-        stack.layers = [];
+        // Remove all existing layers before applying snapshot
+        while (stack.layers.length > 0) {
+            stack.layers.pop();
+        }
+        stack.activeIndex = 0;
 
         for (const data of layersData) {
             const layer = stack.addLayer(data.name);
