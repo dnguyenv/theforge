@@ -19,7 +19,8 @@ export class CollabManager {
         this._ws = null;
         this._connected = false;
         this._pointBatch = [];
-        this._batchLayerId = null;
+        this._batchLayerIndex = null;
+        this._remoteLayerIndices = new Map();
         this._batchTool = null;
         this._batchInterval = null;
         this._cursorLast = 0;
@@ -57,22 +58,22 @@ export class CollabManager {
         bus.emit(EVENTS.COLLAB_LEFT, {});
     }
 
-    sendStrokeStart(layerId, tool) {
-        this._batchLayerId = layerId;
+    sendStrokeStart(layerIndex, tool) {
+        this._batchLayerIndex = layerIndex;
         this._batchTool = tool;
         this._pointBatch = [];
         this._startBatching();
-        this._send({ type: 'stroke_start', layerId, tool });
+        this._send({ type: 'stroke_start', layerIndex, tool });
     }
 
     sendStrokePoint(point) {
         this._pointBatch.push(point);
     }
 
-    sendStrokeEnd(layerId) {
+    sendStrokeEnd(layerIndex) {
         this._flushBatch();
         this._stopBatching();
-        this._send({ type: 'stroke_end', layerId });
+        this._send({ type: 'stroke_end', layerIndex });
     }
 
     sendLayerOp(op, params) {
@@ -185,20 +186,21 @@ export class CollabManager {
                 break;
 
             case 'stroke_start':
+                this._remoteLayerIndices.set(msg.userId, msg.layerIndex ?? 0);
                 if (this.onRemoteStroke) {
-                    this.onRemoteStroke(msg.userId, msg.layerId, [], msg.tool, true);
+                    this.onRemoteStroke(msg.userId, msg.layerIndex ?? 0, [], msg.tool, true);
                 }
                 break;
 
             case 'stroke_points':
                 if (this.onRemoteStroke) {
-                    this.onRemoteStroke(msg.userId, msg.layerId, msg.points, null, false);
+                    this.onRemoteStroke(msg.userId, this._remoteLayerIndex(msg.userId), msg.points, null, false);
                 }
                 break;
 
             case 'stroke_end':
                 if (this.onRemoteStrokeEnd) {
-                    this.onRemoteStrokeEnd(msg.userId, msg.layerId);
+                    this.onRemoteStrokeEnd(msg.userId);
                 }
                 break;
 
@@ -243,10 +245,14 @@ export class CollabManager {
         if (this._pointBatch.length === 0) return;
         this._send({
             type: 'stroke_points',
-            layerId: this._batchLayerId,
+            layerIndex: this._batchLayerIndex,
             points: this._pointBatch,
         });
         this._pointBatch = [];
+    }
+
+    _remoteLayerIndex(userId) {
+        return this._remoteLayerIndices.get(userId) ?? 0;
     }
 }
 

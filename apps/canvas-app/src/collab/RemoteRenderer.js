@@ -5,10 +5,15 @@ export class RemoteRenderer {
     constructor(engine) {
         this.engine = engine;
         this._remoteStrokes = new Map();
+        this._applyingSnapshot = false;
     }
 
-    renderRemoteStroke(userId, layerId, points, tool, isStart) {
-        const layer = this.engine.layers.getLayerById(layerId);
+    get isApplyingSnapshot() {
+        return this._applyingSnapshot;
+    }
+
+    renderRemoteStroke(userId, layerIndex, points, tool, isStart) {
+        const layer = this.engine.layers.layers[layerIndex];
         if (!layer) return;
 
         if (isStart && tool) {
@@ -19,6 +24,7 @@ export class RemoteRenderer {
                 brushEngine,
                 lastPoint: null,
                 tool,
+                layerIndex,
             });
             return;
         }
@@ -26,10 +32,12 @@ export class RemoteRenderer {
         const state = this._remoteStrokes.get(userId);
         if (!state || points.length === 0) return;
 
-        const ctx = layer.ctx;
+        const targetLayer = this.engine.layers.layers[state.layerIndex];
+        if (!targetLayer) return;
+
+        const ctx = targetLayer.ctx;
         const { brushEngine, tool: t } = state;
-        const compositeOp = t.compositeOp || 'source-over';
-        ctx.globalCompositeOperation = compositeOp;
+        ctx.globalCompositeOperation = t.compositeOp || 'source-over';
 
         for (const point of points) {
             const smoothed = brushEngine.addPoint(point);
@@ -43,8 +51,9 @@ export class RemoteRenderer {
                     t.opacity || 1.0,
                     t.color || '#000000'
                 );
-                state.lastPoint = smoothed;
-            } else if (smoothed) {
+            }
+            // Always update lastPoint so next segment can render
+            if (smoothed) {
                 state.lastPoint = smoothed;
             } else {
                 state.lastPoint = point;
@@ -55,23 +64,26 @@ export class RemoteRenderer {
         this.engine.markDirty();
     }
 
-    endRemoteStroke(userId, layerId) {
-        this._remoteStrokes.delete(userId);
-        const layer = this.engine.layers.getLayerById(layerId);
-        if (layer) {
-            layer.markDirty();
-            this.engine._invalidateBelowCache();
+    endRemoteStroke(userId) {
+        const state = this._remoteStrokes.get(userId);
+        if (state) {
+            const layer = this.engine.layers.layers[state.layerIndex];
+            if (layer) {
+                layer.markDirty();
+                this.engine._invalidateBelowCache();
+            }
         }
+        this._remoteStrokes.delete(userId);
     }
 
     async applyStateSnapshot(layersData) {
         if (!layersData || layersData.length === 0) return;
 
+        this._applyingSnapshot = true;
+
         const stack = this.engine.layers;
-        // Remove all existing layers before applying snapshot
-        while (stack.layers.length > 0) {
-            stack.layers.pop();
-        }
+        // Clear all existing layers
+        stack.layers = [];
         stack.activeIndex = 0;
 
         for (const data of layersData) {
@@ -96,9 +108,11 @@ export class RemoteRenderer {
         stack.activeIndex = 0;
         this.engine._invalidateBelowCache();
         this.engine.markDirty();
+        this._applyingSnapshot = false;
     }
 
     applyLayerOp(userId, op, params) {
+        this._applyingSnapshot = true;
         const stack = this.engine.layers;
 
         switch (op) {
@@ -106,8 +120,10 @@ export class RemoteRenderer {
                 stack.addLayer(params.name || null);
                 break;
             case 'remove': {
-                const idx = stack.getIndexById(params.layerId);
-                if (idx >= 0) stack.removeLayer(idx);
+                const idx = params.index;
+                if (idx >= 0 && idx < stack.layers.length) {
+                    stack.removeLayer(idx);
+                }
                 break;
             }
             case 'reorder':
@@ -116,13 +132,16 @@ export class RemoteRenderer {
                 }
                 break;
             case 'clear': {
-                const layer = stack.getLayerById(params.layerId);
-                if (layer) layer.clear();
+                const idx = params.index;
+                if (idx >= 0 && idx < stack.layers.length) {
+                    stack.layers[idx].clear();
+                }
                 break;
             }
         }
 
         this.engine._invalidateBelowCache();
         this.engine.markDirty();
+        this._applyingSnapshot = false;
     }
 }

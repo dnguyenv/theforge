@@ -199,11 +199,11 @@ async function start() {
         engine.view
     );
 
-    collabManager.onRemoteStroke = (userId, layerId, points, tool, isStart) => {
-        remoteRenderer.renderRemoteStroke(userId, layerId, points, tool, isStart);
+    collabManager.onRemoteStroke = (userId, layerIndex, points, tool, isStart) => {
+        remoteRenderer.renderRemoteStroke(userId, layerIndex, points, tool, isStart);
     };
-    collabManager.onRemoteStrokeEnd = (userId, layerId) => {
-        remoteRenderer.endRemoteStroke(userId, layerId);
+    collabManager.onRemoteStrokeEnd = (userId) => {
+        remoteRenderer.endRemoteStroke(userId);
     };
     collabManager.onStateSync = (layers) => {
         remoteRenderer.applyStateSnapshot(layers);
@@ -220,7 +220,8 @@ async function start() {
     bus.on(EVENTS.STROKE_START, () => {
         if (!collabManager.isConnected) return;
         const tool = toolManager.tools.get(toolManager.activeToolId);
-        collabManager.sendStrokeStart(engine.layers.activeLayer?.id, {
+        const layerIndex = engine.layers.activeIndex;
+        collabManager.sendStrokeStart(layerIndex, {
             brushId: tool.brushId || 'pencil',
             size: tool.size || 12,
             opacity: tool.opacity || 1,
@@ -237,20 +238,20 @@ async function start() {
 
     bus.on(EVENTS.STROKE_END, () => {
         if (!collabManager.isConnected) return;
-        collabManager.sendStrokeEnd(engine.layers.activeLayer?.id);
+        collabManager.sendStrokeEnd(engine.layers.activeIndex);
     });
 
-    // Broadcast layer operations
+    // Broadcast layer operations (suppress during snapshot application)
     bus.on(EVENTS.LAYER_ADD, ({ layer, index }) => {
-        if (!collabManager.isConnected) return;
-        collabManager.sendLayerOp('add', { layerId: layer.id, name: layer.name, index });
+        if (!collabManager.isConnected || remoteRenderer.isApplyingSnapshot) return;
+        collabManager.sendLayerOp('add', { name: layer.name, index });
     });
     bus.on(EVENTS.LAYER_REMOVE, ({ layer, index }) => {
-        if (!collabManager.isConnected) return;
-        collabManager.sendLayerOp('remove', { layerId: layer.id, index });
+        if (!collabManager.isConnected || remoteRenderer.isApplyingSnapshot) return;
+        collabManager.sendLayerOp('remove', { index });
     });
     bus.on(EVENTS.LAYER_REORDER, ({ fromIndex, toIndex }) => {
-        if (!collabManager.isConnected) return;
+        if (!collabManager.isConnected || remoteRenderer.isApplyingSnapshot) return;
         collabManager.sendLayerOp('reorder', { fromIndex, toIndex });
     });
 
