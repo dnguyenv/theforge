@@ -26,10 +26,14 @@ export class CanvasEngine {
         const rect = this.displayCanvas.getBoundingClientRect();
         this.displayCanvas.width = rect.width * dpr;
         this.displayCanvas.height = rect.height * dpr;
-        this.displayCtx.scale(dpr, dpr);
+        this.dpr = dpr;
         this.viewWidth = rect.width;
         this.viewHeight = rect.height;
-        this.view.fitToScreen(this.docWidth, this.docHeight, this.viewWidth, this.viewHeight);
+
+        if (!this._initialized) {
+            this.view.fitToScreen(this.docWidth, this.docHeight, this.viewWidth, this.viewHeight);
+            this._initialized = true;
+        }
     }
 
     _bindEvents() {
@@ -88,15 +92,21 @@ export class CanvasEngine {
 
     _composite() {
         const ctx = this.displayCtx;
-        const dpr = window.devicePixelRatio || 1;
+        const dpr = this.dpr || 1;
 
-        ctx.save();
+        // Reset transform and clear
+        ctx.setTransform(1, 0, 0, 1, 0, 0);
+        ctx.clearRect(0, 0, this.displayCanvas.width, this.displayCanvas.height);
+
+        // Scale for DPR — all subsequent coords are in CSS pixels
         ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
 
         // Dark workspace background
         ctx.fillStyle = '#1e1e28';
         ctx.fillRect(0, 0, this.viewWidth, this.viewHeight);
 
+        // Apply view transform (pan + zoom)
+        ctx.save();
         this.view.applyToContext(ctx);
 
         // Canvas background (user-configurable)

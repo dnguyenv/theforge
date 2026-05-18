@@ -9,6 +9,10 @@ export class PointerHandler {
         this.view = viewTransform;
         this._lastTime = 0;
         this._pointers = new Map();
+        this._isPanning = false;
+        this._panLastX = 0;
+        this._panLastY = 0;
+        this._spaceHeld = false;
 
         canvas.addEventListener('pointerdown', (e) => this._onDown(e));
         canvas.addEventListener('pointermove', (e) => this._onMove(e));
@@ -17,6 +21,19 @@ export class PointerHandler {
         canvas.addEventListener('pointercancel', (e) => this._onUp(e));
         canvas.addEventListener('wheel', (e) => this._onWheel(e), { passive: false });
         canvas.style.touchAction = 'none';
+
+        document.addEventListener('keydown', (e) => {
+            if (e.code === 'Space' && !e.repeat) {
+                this._spaceHeld = true;
+                canvas.style.cursor = 'grab';
+            }
+        });
+        document.addEventListener('keyup', (e) => {
+            if (e.code === 'Space') {
+                this._spaceHeld = false;
+                canvas.style.cursor = 'crosshair';
+            }
+        });
     }
 
     _onWheel(e) {
@@ -32,6 +49,16 @@ export class PointerHandler {
     _onDown(e) {
         this._pointers.set(e.pointerId, e);
 
+        // Middle mouse button (button=1) or Space+click = pan
+        if (e.button === 1 || this._spaceHeld) {
+            this._isPanning = true;
+            this._panLastX = e.clientX;
+            this._panLastY = e.clientY;
+            this.canvas.style.cursor = 'grabbing';
+            e.preventDefault();
+            return;
+        }
+
         if (this._pointers.size > 1) {
             this.toolManager.onPointerUp(e);
             this.gestureDetector.onMultiDown([...this._pointers.values()]);
@@ -43,6 +70,16 @@ export class PointerHandler {
 
     _onMove(e) {
         this._pointers.set(e.pointerId, e);
+
+        if (this._isPanning) {
+            const dx = e.clientX - this._panLastX;
+            const dy = e.clientY - this._panLastY;
+            this._panLastX = e.clientX;
+            this._panLastY = e.clientY;
+            this.view.pan(dx, dy);
+            bus.emit(EVENTS.VIEW_CHANGE, {});
+            return;
+        }
 
         if (this._pointers.size > 1) {
             this.gestureDetector.onMultiMove([...this._pointers.values()]);
@@ -58,6 +95,12 @@ export class PointerHandler {
 
     _onUp(e) {
         this._pointers.delete(e.pointerId);
+
+        if (this._isPanning) {
+            this._isPanning = false;
+            this.canvas.style.cursor = this._spaceHeld ? 'grab' : 'crosshair';
+            return;
+        }
 
         if (this._pointers.size > 0) {
             this.gestureDetector.onMultiUp([...this._pointers.values()]);
