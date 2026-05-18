@@ -153,10 +153,12 @@ async function start() {
     engine.backgroundColor = '#ffffff';
 
     // Fullscreen
-    document.getElementById('btn-fullscreen').addEventListener('click', () => {
+    const toggleFullscreen = () => {
         document.body.classList.toggle('fullscreen');
         setTimeout(() => engine.markDirty(), 100);
-    });
+    };
+    document.getElementById('btn-fullscreen').addEventListener('click', toggleFullscreen);
+    document.getElementById('btn-exit-fullscreen').addEventListener('click', toggleFullscreen);
 
     // Analyze
     document.getElementById('btn-analyze').addEventListener('click', () => {
