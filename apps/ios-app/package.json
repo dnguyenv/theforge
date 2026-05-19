@@ -4,7 +4,7 @@
   "description": "An Tam Art - iOS Drawing App with Forge Protocol",
   "private": true,
   "scripts": {
-    "build:wasm": "cd ../.. && wasm-pack build crates/forge-wasm-bridge --target web --out-dir apps/canvas-app/pkg",
+    "build:wasm": "cd ../.. && PATH=\"$HOME/.cargo/bin:$PATH\" wasm-pack build crates/forge-wasm-bridge --target web --out-dir apps/canvas-app/pkg",
     "build:web": "rm -rf www && mkdir -p www && cp ../canvas-app/index.html ../canvas-app/app.js ../canvas-app/style.css www/ && cp -r ../canvas-app/src www/src && cp -r ../canvas-app/pkg www/pkg",
     "build": "npm run build:wasm && npm run build:web",
     "cap:sync": "npx cap sync ios",
