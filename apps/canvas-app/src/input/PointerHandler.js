@@ -91,13 +91,15 @@ export class PointerHandler {
             return;
         }
 
-        // Start long-press detection
+        // Start long-press detection — store coords by value (event objects are recycled on iOS)
         this._longPressStartX = e.clientX;
         this._longPressStartY = e.clientY;
+        this._lastPointerX = e.clientX;
+        this._lastPointerY = e.clientY;
         this._strokeStarted = false;
 
         this._longPressTimer = setTimeout(() => {
-            this._activateLongPressEyedropper(e);
+            this._activateLongPressEyedropper();
         }, LONG_PRESS_MS);
 
         this.toolManager.onPointerDown(e);
@@ -107,10 +109,12 @@ export class PointerHandler {
     _onMove(e) {
         if (this._disabled) return;
         this._pointers.set(e.pointerId, e);
+        this._lastPointerX = e.clientX;
+        this._lastPointerY = e.clientY;
 
         // If long-press eyedropper is active, feed it moves
         if (this._isLongPressActive) {
-            this._longPressSample(e);
+            this._longPressSample(e.clientX, e.clientY);
             return;
         }
 
@@ -148,10 +152,12 @@ export class PointerHandler {
     _onUp(e) {
         this._pointers.delete(e.pointerId);
         this._cancelLongPress();
+        this._lastPointerX = e.clientX;
+        this._lastPointerY = e.clientY;
 
         // If long-press eyedropper was active, finalize color pick
         if (this._isLongPressActive) {
-            this._deactivateLongPressEyedropper(e);
+            this._deactivateLongPressEyedropper();
             return;
         }
 
@@ -179,40 +185,44 @@ export class PointerHandler {
         }
     }
 
-    _activateLongPressEyedropper(e) {
+    _activateLongPressEyedropper() {
         this._longPressTimer = null;
         this._isLongPressActive = true;
 
         // Cancel any in-progress stroke from the active tool
         if (this._strokeStarted) {
-            this.toolManager.onPointerUp(e);
+            // Synthesize a minimal event-like object for the tool's onPointerUp
+            this.toolManager.onPointerUp({
+                clientX: this._lastPointerX,
+                clientY: this._lastPointerY,
+                pointerId: 0,
+                pressure: 0,
+            });
             this._strokeStarted = false;
         }
 
         // Cache composite image data once
         this._longPressCachedData = this.engine.getCompositeImageData();
 
-        // Create loupe
+        // Create loupe at the current finger position
         this._createLongPressLoupe();
-        this._longPressSample(e);
+        this._longPressSample(this._lastPointerX, this._lastPointerY);
 
         // Haptic feedback on supported devices
         if (navigator.vibrate) navigator.vibrate(30);
     }
 
-    _deactivateLongPressEyedropper(e) {
+    _deactivateLongPressEyedropper() {
         this._isLongPressActive = false;
+        this._longPressFinalPick(this._lastPointerX, this._lastPointerY);
         this._destroyLongPressLoupe();
         this._longPressCachedData = null;
-
-        // Final color pick
-        this._longPressFinalPick(e);
     }
 
-    _longPressSample(e) {
+    _longPressSample(screenX, screenY) {
         if (!this._longPressCachedData) return;
 
-        const pos = this.engine.screenToCanvas(e.clientX, e.clientY);
+        const pos = this.engine.screenToCanvas(screenX, screenY);
         const ix = Math.floor(pos.x);
         const iy = Math.floor(pos.y);
         const w = this._longPressCachedData.width;
@@ -228,15 +238,15 @@ export class PointerHandler {
             }
         }
 
-        this._renderLongPressLoupe(e.clientX, e.clientY, pos.x, pos.y, hex);
+        this._renderLongPressLoupe(screenX, screenY, pos.x, pos.y, hex);
     }
 
-    _longPressFinalPick(e) {
-        const pos = this.engine.screenToCanvas(e.clientX, e.clientY);
+    _longPressFinalPick(screenX, screenY) {
+        if (!this._longPressCachedData) return;
+
+        const pos = this.engine.screenToCanvas(screenX, screenY);
         const ix = Math.floor(pos.x);
         const iy = Math.floor(pos.y);
-
-        if (!this._longPressCachedData) return;
         const w = this._longPressCachedData.width;
         const h = this._longPressCachedData.height;
 
