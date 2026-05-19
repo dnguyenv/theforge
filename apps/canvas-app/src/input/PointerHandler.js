@@ -13,6 +13,7 @@ export class PointerHandler {
         this._panLastX = 0;
         this._panLastY = 0;
         this._spaceHeld = false;
+        this._disabled = false;
 
         canvas.addEventListener('pointerdown', (e) => this._onDown(e));
         canvas.addEventListener('pointermove', (e) => this._onMove(e));
@@ -46,7 +47,11 @@ export class PointerHandler {
         bus.emit(EVENTS.VIEW_CHANGE, {});
     }
 
+    disable() { this._disabled = true; }
+    enable() { this._disabled = false; }
+
     _onDown(e) {
+        if (this._disabled) return;
         this._pointers.set(e.pointerId, e);
 
         // Middle mouse button (button=1) or Space+click = pan
@@ -69,6 +74,7 @@ export class PointerHandler {
     }
 
     _onMove(e) {
+        if (this._disabled) return;
         this._pointers.set(e.pointerId, e);
 
         if (this._isPanning) {

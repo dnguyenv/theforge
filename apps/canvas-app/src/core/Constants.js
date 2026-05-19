@@ -90,4 +90,9 @@ export const EVENTS = {
     COLLAB_USER_LEFT: 'collab:user:left',
     COLLAB_STATE_SYNCED: 'collab:state:synced',
     COLLAB_CURSOR_MOVE: 'collab:cursor:move',
+    PAGE_ADD: 'page:add',
+    PAGE_REMOVE: 'page:remove',
+    PAGE_SWITCH_START: 'page:switch:start',
+    PAGE_SWITCH_COMPLETE: 'page:switch:complete',
+    PAGE_FLIP_PROGRESS: 'page:flip:progress',
 };

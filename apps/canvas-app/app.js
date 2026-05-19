@@ -25,6 +25,9 @@ import { CollabPanel } from './src/ui/CollabPanel.js';
 import { CollabManager } from './src/collab/CollabManager.js';
 import { RemoteRenderer } from './src/collab/RemoteRenderer.js';
 import { PresenceCursor } from './src/collab/PresenceCursor.js';
+import { PageManager } from './src/pages/PageManager.js';
+import { PageFlipOverlay } from './src/pages/PageFlipOverlay.js';
+import { PageNavigator } from './src/ui/PageNavigator.js';
 import { forge } from './src/forge/ForgeIntegration.js';
 
 const DOC_WIDTH = 1920;
@@ -39,6 +42,17 @@ async function start() {
 
     // Add initial layer
     engine.layers.addLayer('Background');
+
+    // Multi-page system
+    const pageManager = new PageManager(engine, DOC_WIDTH, DOC_HEIGHT);
+    pageManager.initFromEngine();
+
+    const flipOverlay = new PageFlipOverlay(
+        document.getElementById('canvas-viewport'),
+        engine,
+        pageManager
+    );
+    flipOverlay.mount();
 
     // Start Forge session
     forge.startSession();
@@ -103,6 +117,11 @@ async function start() {
     new BrushLibrary(document.getElementById('brush-library'));
     new ColorPicker(document.getElementById('color-picker-container'));
     new StatusBar(document.getElementById('status-bar-container'));
+    new PageNavigator(document.getElementById('page-navigator-container'), pageManager);
+
+    // Disable drawing during page flip
+    bus.on(EVENTS.PAGE_SWITCH_START, () => pointerHandler.disable());
+    bus.on(EVENTS.PAGE_SWITCH_COMPLETE, () => pointerHandler.enable());
 
     // Brush size/opacity sliders
     const sizeSlider = document.getElementById('brush-size');
