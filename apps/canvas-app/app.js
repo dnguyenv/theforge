@@ -34,6 +34,14 @@ const DOC_WIDTH = 1920;
 const DOC_HEIGHT = 1080;
 
 async function start() {
+    // iOS Safari viewport height fix
+    const setRealVH = () => {
+        document.documentElement.style.setProperty('--real-vh', `${window.innerHeight}px`);
+    };
+    window.addEventListener('resize', setRealVH);
+    window.addEventListener('orientationchange', () => setTimeout(setRealVH, 100));
+    setRealVH();
+
     await init();
     await forge.init(wasm);
 
