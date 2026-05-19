@@ -303,10 +303,33 @@ export class PointerHandler {
         const w = data.width;
         const h = data.height;
 
-        // Position loupe above finger
-        const lx = screenX - SIZE / 2;
-        const ly = screenY - 80 - SIZE / 2;
-        el.style.transform = `translate(${lx}px, ${ly}px)`;
+        // Ergonomic positioning: loupe above fingertip with boundary collision
+        const OFFSET_ABOVE = 110; // px above touch point (clears finger + thumb)
+        const MARGIN = 10;
+        const vw = window.innerWidth;
+        const vh = window.innerHeight;
+
+        let lx = screenX - SIZE / 2;
+        let ly = screenY - OFFSET_ABOVE - SIZE / 2;
+
+        // Top edge: flip to below finger
+        if (ly < MARGIN) {
+            ly = screenY + 60;
+        }
+        // Bottom edge (if flipped below)
+        if (ly + SIZE > vh - MARGIN) {
+            ly = vh - MARGIN - SIZE;
+        }
+        // Left edge
+        if (lx < MARGIN) {
+            lx = MARGIN;
+        }
+        // Right edge
+        if (lx + SIZE > vw - MARGIN) {
+            lx = vw - MARGIN - SIZE;
+        }
+
+        el.style.transform = `translate3d(${Math.round(lx)}px, ${Math.round(ly)}px, 0)`;
 
         ctx.clearRect(0, 0, SIZE, SIZE);
 

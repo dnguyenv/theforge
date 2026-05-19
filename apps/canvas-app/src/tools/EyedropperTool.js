@@ -143,9 +143,30 @@ export class EyedropperTool {
 
     _positionLoupe(screenX, screenY) {
         if (!this._loupeEl) return;
-        const x = screenX - LOUPE_SIZE / 2;
-        const y = screenY + LOUPE_OFFSET_Y - LOUPE_SIZE / 2;
-        this._loupeEl.style.transform = `translate(${x}px, ${y}px)`;
+
+        const OFFSET_ABOVE = 110;
+        const MARGIN = 10;
+        const vw = window.innerWidth;
+        const vh = window.innerHeight;
+
+        let lx = screenX - LOUPE_SIZE / 2;
+        let ly = screenY - OFFSET_ABOVE - LOUPE_SIZE / 2;
+
+        // Top edge: flip below finger
+        if (ly < MARGIN) {
+            ly = screenY + 60;
+        }
+        if (ly + LOUPE_SIZE > vh - MARGIN) {
+            ly = vh - MARGIN - LOUPE_SIZE;
+        }
+        if (lx < MARGIN) {
+            lx = MARGIN;
+        }
+        if (lx + LOUPE_SIZE > vw - MARGIN) {
+            lx = vw - MARGIN - LOUPE_SIZE;
+        }
+
+        this._loupeEl.style.transform = `translate3d(${Math.round(lx)}px, ${Math.round(ly)}px, 0)`;
     }
 
     _renderLoupe(canvasX, canvasY, hexColor) {

@@ -715,6 +715,8 @@ body.fullscreen #page-navigator-container { display: none; }
 /* Eyedropper Magnifier Loupe */
 .eyedropper-loupe {
     position: fixed;
+    top: 0;
+    left: 0;
     width: 120px;
     height: 120px;
     border-radius: 50%;
@@ -724,6 +726,7 @@ body.fullscreen #page-navigator-container { display: none; }
     z-index: 200;
     overflow: hidden;
     display: none;
+    will-change: transform;
     -webkit-transform: translateZ(0);
 }
 

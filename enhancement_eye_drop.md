@@ -32,3 +32,23 @@ When a user executes a "touch and hold" gesture on the canvas/UI to use the cust
 3. Edge Cases: Ensure the fix doesn't accidentally disable double-tap zooming behaviors if they are needed, or conflict with dragging gestures when moving the loupe around the screen.
 
 Deliver clean, modern JavaScript/CSS code snippets with a brief explanation of why this fixes WebKit's native behavior.
+
+
+Act as a Senior Frontend UI/UX Engineer specializing in touch interfaces, mobile ergonomics, and canvas-based tools.
+Fix a critical positioning and visibility bug with our custom magnifier loupe color picker on mobile/tablet touch screens.
+
+### The Bug:
+When a user presses and holds to trigger the magnifier loupe, the UI element renders significantly lower than the touch point, directly underneath or behind the user's finger. Because the finger/hand blocks the view (finger occlusion), the user cannot see the magnifier loupe or the color they are sampling.
+
+### Requirements for the Solution:
+1. Ergonomic Positioning & Offset Math: 
+   - Rewrite the positioning logic so the magnifier loupe is explicitly offset *above* the user's actual touch point (e.g., -80px to -120px Y-axis shift), ensuring it is perfectly visible just above the tip of their finger.
+   - Provide the exact math to map the touch coordinates (`touches[0].clientX/Y` or `page/viewport` coordinates) accurately to the loupe's CSS absolute positioning or canvas rendering position.
+
+2. "Beyond the Basic" Collision Detection (Viewport Boundaries):
+   - Implement smart boundary detection. If the user touches near the very top edge of the screen where an upward offset would push the loupe off-screen, the loupe should dynamically flip to the side (left/right) or below the finger, staying fully within the visible viewport.
+
+3. Performance & Tracking Smoothness:
+   - Ensure that as the user drags their finger to sample colors, the loupe follows smoothly without lag. Use `requestAnimationFrame` or hardware-accelerated CSS transforms (`translate3d`) for 60 FPS performance during the `touchmove` event.
+
+Deliver a clean, modular solution (JavaScript/TypeScript and CSS) with an explanation of the coordinate math used to achieve the ergonomic offset.
