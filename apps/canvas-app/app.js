@@ -77,7 +77,7 @@ async function start() {
 
     // Input
     const gestureDetector = new GestureDetector(engine.view);
-    const pointerHandler = new PointerHandler(canvas, toolManager, gestureDetector, engine.view);
+    const pointerHandler = new PointerHandler(canvas, toolManager, gestureDetector, engine.view, engine);
     const shortcuts = new KeyboardShortcuts(toolManager);
 
     // Undo
