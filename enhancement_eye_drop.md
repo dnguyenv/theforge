@@ -38,7 +38,7 @@ Act as a Senior Frontend UI/UX Engineer specializing in touch interfaces, mobile
 Fix a critical positioning and visibility bug with our custom magnifier loupe color picker on mobile/tablet touch screens.
 
 ### The Bug:
-When a user presses and holds to trigger the magnifier loupe, the UI element renders significantly lower than the touch point, directly underneath or behind the user's finger. Because the finger/hand blocks the view (finger occlusion), the user cannot see the magnifier loupe or the color they are sampling.
+When a user presses and holds to trigger the magnifier loupe, the UI element renders significantly lower than the touch point, way far behind the user's finger. the user cannot see the magnifier loupe or the color they are sampling.
 
 ### Requirements for the Solution:
 1. Ergonomic Positioning & Offset Math: 

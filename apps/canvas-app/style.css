@@ -151,9 +151,9 @@ body {
 .btn-more:hover { border-color: var(--border-light); }
 
 .overflow-menu {
-    position: absolute;
-    top: 38px;
-    right: 0;
+    position: fixed;
+    top: var(--toolbar-height);
+    right: 8px;
     background: var(--bg-secondary);
     border: 1px solid var(--border);
     border-radius: var(--radius);
@@ -161,8 +161,8 @@ body {
     display: grid;
     grid-template-columns: repeat(4, 1fr);
     gap: 2px;
-    box-shadow: 0 8px 24px rgba(0,0,0,0.4);
-    z-index: 50;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.5);
+    z-index: 9999;
 }
 
 .overflow-menu[hidden] { display: none; }
