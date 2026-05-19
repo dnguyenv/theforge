@@ -248,12 +248,22 @@ body {
     position: relative;
 }
 
+#canvas-viewport {
+    -webkit-user-select: none;
+    -webkit-touch-callout: none;
+    user-select: none;
+}
+
 #forge-canvas {
     width: 100%;
     height: 100%;
     cursor: crosshair;
     touch-action: none;
     will-change: transform;
+    -webkit-user-select: none;
+    -webkit-touch-callout: none;
+    -webkit-tap-highlight-color: transparent;
+    user-select: none;
 }
 
 /* Layers Panel */

@@ -18,3 +18,17 @@ Task 2: Implement a High-Fidelity "Eye-Drop" Color Picker
   4. Ensure proper handling of scaled/zoomed canvases so the sampled coordinate perfectly matches the visual pixel the user is pointing to.
 
 Structure your response with clear root-cause explanations, clean and modular code snippets, and integration instructions for our existing app state.
+
+Act as a Senior Frontend Engineer specializing in iOS Safari compatibility, Mobile WebKit, and mobile touch interactions. Always deliver a solution that goes beyond basic implementations by factoring in performance, edge cases, and exceptional UX.
+
+Fix the following issue in our web-based canvas application on iPad browsers:
+
+### The Bug:
+When a user executes a "touch and hold" gesture on the canvas/UI to use the custom magnifier loupe color picker, the native iOS "select text" behavior takes over. This highlights text/objects and triggers the native OS callout menu (Copy, Paste, Look Up, etc.), completely breaking the custom tool interaction.
+
+### Requirements for the Solution:
+1. CSS Suppression: Provide the exact WebKit-specific CSS rules needed to disable native selection, highlighting, and callouts on the canvas and UI wrapper element (e.g., handling `-webkit-user-select`, `-webkit-touch-callout`, etc.) without breaking normal button clicks or text input fields elsewhere in the app.
+2. JavaScript Event Handling: Provide the precise touch event listeners (`touchstart`, `touchend`, `contextmenu`) and where to apply `e.preventDefault()` or `e.stopPropagation()` to stop iOS from hijacking the long-press gesture, while still allowing our magnifier loupe logic to track the touch position.
+3. Edge Cases: Ensure the fix doesn't accidentally disable double-tap zooming behaviors if they are needed, or conflict with dragging gestures when moving the loupe around the screen.
+
+Deliver clean, modern JavaScript/CSS code snippets with a brief explanation of why this fixes WebKit's native behavior.

@@ -23,6 +23,12 @@ export class PointerHandler {
         canvas.addEventListener('wheel', (e) => this._onWheel(e), { passive: false });
         canvas.style.touchAction = 'none';
 
+        // Suppress iOS long-press native callout/selection on canvas
+        canvas.addEventListener('contextmenu', (e) => e.preventDefault());
+        canvas.addEventListener('touchstart', (e) => {
+            if (e.target === canvas) e.preventDefault();
+        }, { passive: false });
+
         document.addEventListener('keydown', (e) => {
             if (e.code === 'Space' && !e.repeat) {
                 this._spaceHeld = true;
