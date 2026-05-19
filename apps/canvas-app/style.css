@@ -152,16 +152,14 @@ body {
 
 .overflow-menu {
     position: fixed;
-    top: var(--toolbar-height);
-    right: 8px;
     background: var(--bg-secondary);
     border: 1px solid var(--border);
     border-radius: var(--radius);
-    padding: 6px;
+    padding: 8px;
     grid-template-columns: repeat(4, 1fr);
-    gap: 2px;
-    box-shadow: 0 8px 24px rgba(0,0,0,0.5);
-    z-index: 9999;
+    gap: 4px;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.6);
+    z-index: 99999;
     display: none;
 }
 

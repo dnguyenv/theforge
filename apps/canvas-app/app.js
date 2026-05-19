@@ -161,25 +161,33 @@ async function start() {
     document.getElementById('btn-undo').addEventListener('click', () => bus.emit(EVENTS.UNDO, {}));
     document.getElementById('btn-redo').addEventListener('click', () => bus.emit(EVENTS.REDO, {}));
 
-    // Overflow menu toggle (class-based, works reliably on iOS touch)
+    // Overflow menu toggle — moved to body to escape any overflow/stacking issues
     const overflowMenu = document.getElementById('overflow-menu');
     const btnMore = document.getElementById('btn-more');
-    overflowMenu.removeAttribute('hidden');
+    document.body.appendChild(overflowMenu); // Move to body root
 
-    const toggleMenu = (e) => {
-        e.preventDefault();
-        e.stopPropagation();
-        overflowMenu.classList.toggle('open');
+    let menuOpen = false;
+    const openMenu = () => {
+        if (menuOpen) { closeMenu(); return; }
+        const rect = btnMore.getBoundingClientRect();
+        overflowMenu.style.top = `${rect.bottom + 4}px`;
+        overflowMenu.style.right = `${window.innerWidth - rect.right}px`;
+        overflowMenu.classList.add('open');
+        menuOpen = true;
+    };
+    const closeMenu = () => {
+        overflowMenu.classList.remove('open');
+        menuOpen = false;
     };
 
-    const closeMenu = (e) => {
-        if (!overflowMenu.contains(e.target) && e.target !== btnMore && !btnMore.contains(e.target)) {
-            overflowMenu.classList.remove('open');
-        }
-    };
-
-    btnMore.addEventListener('pointerdown', toggleMenu);
-    document.addEventListener('pointerdown', closeMenu);
+    btnMore.addEventListener('click', (e) => { e.stopPropagation(); openMenu(); });
+    btnMore.addEventListener('touchend', (e) => { e.preventDefault(); e.stopPropagation(); openMenu(); });
+    document.addEventListener('click', (e) => {
+        if (menuOpen && !overflowMenu.contains(e.target)) closeMenu();
+    });
+    document.addEventListener('touchstart', (e) => {
+        if (menuOpen && !overflowMenu.contains(e.target) && e.target !== btnMore && !btnMore.contains(e.target)) closeMenu();
+    });
 
     // Zoom controls
     document.getElementById('btn-zoom-in').addEventListener('click', () => {
