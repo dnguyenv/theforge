@@ -161,14 +161,25 @@ async function start() {
     document.getElementById('btn-undo').addEventListener('click', () => bus.emit(EVENTS.UNDO, {}));
     document.getElementById('btn-redo').addEventListener('click', () => bus.emit(EVENTS.REDO, {}));
 
-    // Overflow menu toggle
+    // Overflow menu toggle (class-based, works reliably on iOS touch)
     const overflowMenu = document.getElementById('overflow-menu');
-    document.getElementById('btn-more').addEventListener('click', (e) => {
+    const btnMore = document.getElementById('btn-more');
+    overflowMenu.removeAttribute('hidden');
+
+    const toggleMenu = (e) => {
+        e.preventDefault();
         e.stopPropagation();
-        overflowMenu.hidden = !overflowMenu.hidden;
-    });
-    document.addEventListener('click', () => { overflowMenu.hidden = true; });
-    overflowMenu.addEventListener('click', (e) => e.stopPropagation());
+        overflowMenu.classList.toggle('open');
+    };
+
+    const closeMenu = (e) => {
+        if (!overflowMenu.contains(e.target) && e.target !== btnMore && !btnMore.contains(e.target)) {
+            overflowMenu.classList.remove('open');
+        }
+    };
+
+    btnMore.addEventListener('pointerdown', toggleMenu);
+    document.addEventListener('pointerdown', closeMenu);
 
     // Zoom controls
     document.getElementById('btn-zoom-in').addEventListener('click', () => {

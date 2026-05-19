@@ -158,14 +158,16 @@ body {
     border: 1px solid var(--border);
     border-radius: var(--radius);
     padding: 6px;
-    display: grid;
     grid-template-columns: repeat(4, 1fr);
     gap: 2px;
     box-shadow: 0 8px 24px rgba(0,0,0,0.5);
     z-index: 9999;
+    display: none;
 }
 
-.overflow-menu[hidden] { display: none; }
+.overflow-menu.open {
+    display: grid;
+}
 
 .overflow-menu button,
 .overflow-menu label {
